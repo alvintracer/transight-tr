@@ -19,6 +19,8 @@
 import { serve } from 'https://deno.land/std@0.208.0/http/server.ts';
 import { corsHeaders, handleCors } from '../_shared/cors.ts';
 import { createServiceClient } from '../_shared/supabase-client.ts';
+import { routeTransfer, routeTransferResult, routeTransferFinish } from '../_shared/protocol-adapter.ts';
+import type { VaspTarget, AdapterTransferRequest } from '../_shared/protocol-adapter.ts';
 
 // ============================================================
 // Helper: URL 경로 파싱
@@ -287,22 +289,58 @@ async function handleOutgoingTransfer(
   }
 
   // 7. 수신 VASP에 IVMS101 전달 (Protocol Adapter)
-  // TODO: Phase 4에서 실제 프로토콜 어댑터 구현
-  // 현재는 자체 네트워크 내 시뮬레이션
+  const hubPrivateKey = Deno.env.get('TRANSIGHT_PRIVATE_KEY') || '';
+  const hubVaspEntityId = Deno.env.get('TRANSIGHT_VASP_ENTITY_ID') || 'transight-hub';
+
   let transferResult: 'verified' | 'denied' = 'verified';
   let responsePayload = '';
   let reasonType = '';
   let reasonMsg = '';
+  let adapterProtocol = 'none';
+  let adapterLatencyMs = 0;
 
   if (beneficiaryVasp) {
-    // 수신 VASP가 등록되어 있으면 → 자동 인가 (시뮬레이션)
-    // Phase 4에서 실제 API 호출로 교체
-    transferResult = 'verified';
-    responsePayload = ''; // 수신 VASP의 암호화 응답
+    // 수신 VASP 정보 → Protocol Adapter로 라우팅
+    const activeKeys = ((beneficiaryVasp.public_keys as Array<Record<string, unknown>>) ?? [])
+      .filter((pk: Record<string, unknown>) => pk.is_active);
+
+    const target: VaspTarget = {
+      vaspEntityId: beneficiaryVasp.vasp_entity_id as string,
+      vaspName: beneficiaryVasp.vasp_name as string,
+      allianceName: beneficiaryVasp.alliance_name as string,
+      endpointUrl: beneficiaryVasp.endpoint_url as string | undefined,
+      channelType: (beneficiaryVasp.channel_type as string) ?? 'HTTPS',
+      publicKey: activeKeys.length > 0 ? activeKeys[0].public_key as string : undefined,
+      health: beneficiaryVasp.health as string,
+    };
+
+    const adapterRequest: AdapterTransferRequest = {
+      transferId: transferId as string,
+      currency: currency as string,
+      amount: amount as string,
+      tradePrice: tradePrice as string | undefined,
+      tradeCurrency: tradeCurrency as string,
+      isExceedingThreshold: isExceedingThreshold as boolean,
+      payload: payload as string,
+      address: address as string | undefined,
+      tag: tag as string | undefined,
+      network: network as string | undefined,
+      originatorVaspEntityId: originatorVaspEntityId as string | undefined,
+    };
+
+    const adapterResponse = await routeTransfer(target, adapterRequest, hubPrivateKey, hubVaspEntityId);
+
+    transferResult = adapterResponse.result === 'pending' ? 'verified' : adapterResponse.result;
+    responsePayload = adapterResponse.payload ?? '';
+    reasonType = adapterResponse.reasonType ?? '';
+    reasonMsg = adapterResponse.reasonMsg ?? '';
+    adapterProtocol = adapterResponse.protocol;
+    adapterLatencyMs = adapterResponse.latencyMs;
   } else {
-    // 수신 VASP 미등록 → 수동 확인 필요
+    // 수신 VASP 미등록 → 자동 인가 (테스트)
     transferResult = 'verified';
-    reasonMsg = 'Beneficiary VASP not specified — auto-verified for testing';
+    reasonMsg = 'Beneficiary VASP not specified — auto-verified';
+    adapterProtocol = 'none';
   }
 
   // 8. Transfer 상태 업데이트
@@ -328,6 +366,8 @@ async function handleOutgoingTransfer(
       result: transferResult,
       kyt: kytResult.decision,
       beneficiary_vasp: beneficiaryVaspEntityId ?? 'unspecified',
+      protocol: adapterProtocol,
+      adapter_latency_ms: adapterLatencyMs,
     },
   });
 
@@ -345,6 +385,10 @@ async function handleOutgoingTransfer(
     kyt: {
       decision: kytResult.decision,
       riskScore: kytResult.riskScore,
+    },
+    adapter: {
+      protocol: adapterProtocol,
+      latencyMs: adapterLatencyMs,
     },
   }, 201);
 }
