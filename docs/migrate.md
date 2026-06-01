@@ -252,9 +252,9 @@ transight-tr/
 | 2026-06-01 | Phase 1: 서비스 레이어 | ✅ 완료 | VASP CRUD, Transfer, Audit, TTL Queue |
 | 2026-06-01 | API Docs 사이트 | ✅ 완료 | VitePress (KO/EN) — `npm run docs:dev` |
 | 2026-06-01 | Phase 2: VASP Discovery | ✅ 완료 | 필터, 지갑 탐색, 주소 검증, 키 로테이션 |
-| 2026-06-01 | Phase 3: Transfer Auth | ✅ 완료 | 출금/입금 TR, TXID 보고, 취소, Atomic KYT Gate (stub) |
-| | Phase 4: Protocol Adapter | ✅ 완료 | CODE/Direct/Internal 비대칭 브릿지, 4개 어댑터 |
-| | Phase 5: KYT 연동 | ⬜ 예정 | TranSight 내부 KYT 연결 |
+| 2026-06-01 | Phase 3: Transfer Auth | ✅ 완료 | 출금/입금 TR, TXID 보고, 취소 |
+| 2026-06-01 | Phase 4: Protocol Adapter | ✅ 완료 | CODE/Sumsub/Direct/Internal — 5개 어댑터 |
+| 2026-06-01 | Phase 5: KYT 연동 | ✅ 완료 | TranSight 내부 KYT Atomic Gate 실연결 |
 
 ---
 

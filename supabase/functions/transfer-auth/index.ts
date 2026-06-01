@@ -21,6 +21,8 @@ import { corsHeaders, handleCors } from '../_shared/cors.ts';
 import { createServiceClient } from '../_shared/supabase-client.ts';
 import { routeTransfer, routeTransferResult, routeTransferFinish } from '../_shared/protocol-adapter.ts';
 import type { VaspTarget, AdapterTransferRequest } from '../_shared/protocol-adapter.ts';
+import { atomicGate } from '../_shared/kyt-gate.ts';
+import type { KytCheckResult } from '../_shared/kyt-gate.ts';
 
 // ============================================================
 // Helper: URL 경로 파싱
@@ -209,18 +211,20 @@ async function handleOutgoingTransfer(
     beneficiaryVasp = benVasp;
   }
 
-  // 5. KYT Gate (Atomic)
-  // TODO: Phase 5에서 실제 KYT API 연동
-  // 현재는 모든 전송을 PASS 처리
-  const kytResult = {
-    decision: 'PASS',
-    riskScore: 0,
-    checkedAt: new Date().toISOString(),
-    provider: 'transight-kyt-stub',
-  };
+  // 5. KYT Gate (Atomic) — TranSight 내부 KYT API 호출
+  const gateResult = await atomicGate({
+    address: (address as string) ?? '',
+    currency: currency as string,
+    amount: amount as string,
+    beneficiaryVaspEntityId: beneficiaryVaspEntityId as string | undefined,
+    network: network as string | undefined,
+    transferId: transferId as string,
+  });
+
+  const kytResult: KytCheckResult = gateResult.kytResult;
 
   // KYT BLOCK이면 여기서 즉시 종료 (PII 미전송)
-  if (kytResult.decision === 'BLOCK') {
+  if (gateResult.finalDecision === 'block') {
     // Transfer 레코드 생성 (denied)
     const { data: transfer } = await supabase
       .from('transfers')
@@ -237,7 +241,7 @@ async function handleOutgoingTransfer(
         is_exceeding_threshold: isExceedingThreshold,
         result: 'denied',
         reason_type: 'KYT_BLOCK',
-        reason_msg: 'KYT risk assessment blocked this transfer',
+        reason_msg: gateResult.blockReason ?? 'KYT risk assessment blocked this transfer',
         kyt_result: kytResult,
       })
       .select()
@@ -248,14 +252,25 @@ async function handleOutgoingTransfer(
       event_type: 'transfer.kyt_blocked',
       entity_type: 'transfer',
       entity_id: transfer?.id,
-      details: { transfer_id: transferId, kyt: kytResult },
+      details: {
+        transfer_id: transferId,
+        kyt: kytResult,
+        address: address ?? 'unspecified',
+      },
     });
 
     return jsonResponse({
       result: 'denied',
       reasonType: 'KYT_BLOCK',
-      reasonMsg: 'KYT risk assessment blocked this transfer. PII was not transmitted.',
+      reasonMsg: gateResult.blockReason ?? 'KYT risk assessment blocked this transfer. PII was not transmitted.',
       transferId,
+      kyt: {
+        decision: kytResult.decision,
+        riskScore: kytResult.riskScore,
+        riskCategory: kytResult.riskCategory,
+        riskLabels: kytResult.riskLabels,
+        provider: kytResult.provider,
+      },
     }, 201);
   }
 
