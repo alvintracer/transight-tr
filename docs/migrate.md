@@ -255,7 +255,10 @@ transight-tr/
 | 2026-06-01 | Phase 3: Transfer Auth | ✅ 완료 | 출금/입금 TR, TXID 보고, 취소 |
 | 2026-06-01 | Phase 4: Protocol Adapter | ✅ 완료 | CODE/Sumsub/Direct/Internal — 5개 어댑터 |
 | 2026-06-01 | Phase 5: KYT 연동 | ✅ 완료 | TranSight 내부 KYT Atomic Gate 실연결 |
+| 2026-06-01 | Phase 6: Response API | ✅ 완료 | confirm/deny, 2차 IVMS101, Webhook |
+| 2026-06-01 | Phase 7: 테스트/보안 | ✅ 완료 | E2E 25건 통과, 보안 미들웨어, README |
 
 ---
 
 *© 2026 Bonanza Factory Co., Ltd. Confidential.*
+
