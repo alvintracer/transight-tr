@@ -249,7 +249,12 @@ transight-tr/
 | 2026-06-01 | Supabase Cloud 연결 | qyyqsuzqstkhnrmyqskn | DB push + seed 완료 |
 | 2026-06-01 | Edge Functions 배포 3개 | qyyqsuzqstkhnrmyqskn | health, vasp-registry, transfer-auth |
 | 2026-06-01 | GitHub 연결 | alvintracer/transight-tr | SSH (ed25519) |
-| 2026-06-01 | Phase 1: DB 모델 완성 | 진행 중 | VASP CRUD, 쿼리 헬퍼, 서비스 레이어 |
+| 2026-06-01 | Phase 1: 서비스 레이어 | ✅ 완료 | VASP CRUD, Transfer, Audit, TTL Queue |
+| 2026-06-01 | API Docs 사이트 | ✅ 완료 | VitePress (KO/EN) — `npm run docs:dev` |
+| 2026-06-01 | Phase 2: VASP Discovery | ✅ 완료 | 필터, 지갑 탐색, 주소 검증, 키 로테이션 |
+| 2026-06-01 | Phase 3: Transfer Auth | ✅ 완료 | 출금/입금 TR, TXID 보고, 취소, Atomic KYT Gate (stub) |
+| | Phase 4: Protocol Adapter | ⬜ 예정 | CODE/VerifyVASP 브릿지 |
+| | Phase 5: KYT 연동 | ⬜ 예정 | Atomic Gate 실제 연결 |
 
 ---
 
