@@ -1,0 +1,93 @@
+/**
+ * 에러 코드 정의
+ * CODE VASP + TranSight 확장 에러 코드
+ */
+
+// ============================================================
+// CODE VASP 호환 에러 코드 (Transfer Denial Reasons)
+// ============================================================
+
+export const CODE_DENIAL_REASONS = {
+  /** 지갑 주소를 찾을 수 없음 */
+  NOT_FOUND_ADDRESS: 'NOT_FOUND_ADDRESS',
+  /** 지원하지 않는 코인 심볼 */
+  NOT_SUPPORTED_SYMBOL: 'NOT_SUPPORTED_SYMBOL',
+  /** KYC 미완료 사용자 */
+  NOT_KYC_USER: 'NOT_KYC_USER',
+  /** 수신인 이름 불일치 */
+  INPUT_NAME_MISMATCHED: 'INPUT_NAME_MISMATCHED',
+  /** 생년월일 불일치 */
+  DOB_MISMATCHED: 'DOB_MISMATCHED',
+  /** 제재 대상 */
+  SANCTION_LIST: 'SANCTION_LIST',
+  /** 정보 부족 */
+  LACK_OF_INFORMATION: 'LACK_OF_INFORMATION',
+  /** 기타 사유 */
+  UNKNOWN: 'UNKNOWN',
+} as const;
+
+export type CodeDenialReason = typeof CODE_DENIAL_REASONS[keyof typeof CODE_DENIAL_REASONS];
+
+// ============================================================
+// TranSight Hub 에러 코드 (확장)
+// ============================================================
+
+export const TRANSIGHT_ERROR_CODES = {
+  // 인증/인가
+  AUTH_INVALID_SIGNATURE: 'AUTH_INVALID_SIGNATURE',
+  AUTH_EXPIRED_NONCE: 'AUTH_EXPIRED_NONCE',
+  AUTH_UNKNOWN_VASP: 'AUTH_UNKNOWN_VASP',
+  AUTH_KEY_MISMATCH: 'AUTH_KEY_MISMATCH',
+
+  // KYT 관련
+  KYT_BLOCK: 'KYT_BLOCK',                     // KYT에서 위험 판정 → TR 중단 (Atomic)
+  KYT_TIMEOUT: 'KYT_TIMEOUT',
+  KYT_SERVICE_ERROR: 'KYT_SERVICE_ERROR',
+
+  // 전송 관련
+  TRANSFER_NOT_FOUND: 'TRANSFER_NOT_FOUND',
+  TRANSFER_INVALID_STATUS: 'TRANSFER_INVALID_STATUS',
+  TRANSFER_EXPIRED: 'TRANSFER_EXPIRED',
+  TRANSFER_DUPLICATE: 'TRANSFER_DUPLICATE',
+
+  // IVMS101
+  IVMS101_INVALID_PAYLOAD: 'IVMS101_INVALID_PAYLOAD',
+  IVMS101_DECRYPTION_FAILED: 'IVMS101_DECRYPTION_FAILED',
+  IVMS101_VALIDATION_FAILED: 'IVMS101_VALIDATION_FAILED',
+
+  // VASP 관련
+  VASP_NOT_FOUND: 'VASP_NOT_FOUND',
+  VASP_HEALTH_DOWN: 'VASP_HEALTH_DOWN',
+  VASP_KEY_EXPIRED: 'VASP_KEY_EXPIRED',
+
+  // 채널 관련
+  CHANNEL_ROUTING_FAILED: 'CHANNEL_ROUTING_FAILED',
+  CHANNEL_TIMEOUT: 'CHANNEL_TIMEOUT',
+
+  // 일반
+  INTERNAL_ERROR: 'INTERNAL_ERROR',
+  INVALID_REQUEST: 'INVALID_REQUEST',
+  RATE_LIMITED: 'RATE_LIMITED',
+} as const;
+
+export type TransightErrorCode = typeof TRANSIGHT_ERROR_CODES[keyof typeof TRANSIGHT_ERROR_CODES];
+
+// ============================================================
+// HTTP Status Code Mapping
+// ============================================================
+
+export const ERROR_HTTP_STATUS: Record<string, number> = {
+  [TRANSIGHT_ERROR_CODES.AUTH_INVALID_SIGNATURE]: 401,
+  [TRANSIGHT_ERROR_CODES.AUTH_EXPIRED_NONCE]: 401,
+  [TRANSIGHT_ERROR_CODES.AUTH_UNKNOWN_VASP]: 401,
+  [TRANSIGHT_ERROR_CODES.AUTH_KEY_MISMATCH]: 401,
+  [TRANSIGHT_ERROR_CODES.KYT_BLOCK]: 403,
+  [TRANSIGHT_ERROR_CODES.TRANSFER_NOT_FOUND]: 404,
+  [TRANSIGHT_ERROR_CODES.VASP_NOT_FOUND]: 404,
+  [TRANSIGHT_ERROR_CODES.IVMS101_INVALID_PAYLOAD]: 400,
+  [TRANSIGHT_ERROR_CODES.IVMS101_VALIDATION_FAILED]: 400,
+  [TRANSIGHT_ERROR_CODES.INVALID_REQUEST]: 400,
+  [TRANSIGHT_ERROR_CODES.TRANSFER_DUPLICATE]: 409,
+  [TRANSIGHT_ERROR_CODES.RATE_LIMITED]: 429,
+  [TRANSIGHT_ERROR_CODES.INTERNAL_ERROR]: 500,
+};

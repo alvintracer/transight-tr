@@ -1,0 +1,37 @@
+{
+  "name": "transight-tr",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "TranSight TR — CODE VASP compatible Travel Rule solution built on Supabase",
+  "scripts": {
+    "dev": "supabase start",
+    "dev:stop": "supabase stop",
+    "db:reset": "supabase db reset",
+    "db:migrate": "supabase migration up",
+    "functions:serve": "supabase functions serve",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.4",
+    "tweetnacl": "^1.0.3",
+    "tweetnacl-util": "^0.15.1",
+    "ed2curve": "^0.3.0",
+    "libsodium-wrappers": "^0.7.15",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3",
+    "vitest": "^1.6.1",
+    "@types/node": "^20.17.12",
+    "@types/uuid": "^9.0.8",
+    "@types/libsodium-wrappers": "^0.7.14",
+    "supabase": ">=1.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
