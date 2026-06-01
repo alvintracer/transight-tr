@@ -4,7 +4,8 @@
  * 수신 VASP의 alliance_name에 따라 적절한 프로토콜로 TR 메시지를 라우팅합니다.
  * 
  * 지원 프로토콜:
- *   - code      → CODE VASP API (trapi.codevasp.com)
+ *   - code       → CODE VASP API (trapi.codevasp.com)
+ *   - sumsub     → Sumsub Travel Rule API (TRUST 프로토콜 게이트웨이)
  *   - verifyvasp → VerifyVASP API (향후 구현)
  *   - transight  → TranSight 내부 네트워크 (DB 직접 조회)
  *   - direct     → 직접 HTTPS/mTLS 연결
@@ -235,6 +236,228 @@ class VerifyVaspAdapter implements ProtocolAdapter {
 
   async sendTransferFinish() {
     return { success: false, error: 'Not implemented' };
+  }
+}
+
+// ============================================================
+// Sumsub Travel Rule Adapter (TRUST 프로토콜 게이트웨이)
+// ============================================================
+
+class SumsubAdapter implements ProtocolAdapter {
+  name = 'sumsub';
+
+  private baseUrl: string;
+  private appToken: string;
+  private secretKey: string;
+
+  constructor() {
+    this.baseUrl = Deno.env.get('SUMSUB_API_BASE_URL') || 'https://api.sumsub.com';
+    this.appToken = Deno.env.get('SUMSUB_APP_TOKEN') || '';
+    this.secretKey = Deno.env.get('SUMSUB_SECRET_KEY') || '';
+  }
+
+  /**
+   * HMAC-SHA256 서명 생성 (Sumsub 인증)
+   * sig = HMAC-SHA256(secretKey, timestamp + method + uri + body)
+   */
+  private async createSignature(
+    method: string,
+    uri: string,
+    body: string,
+    timestamp: number,
+  ): Promise<string> {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(`${timestamp}${method}${uri}${body}`);
+    const key = await crypto.subtle.importKey(
+      'raw',
+      encoder.encode(this.secretKey),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['sign'],
+    );
+    const sig = await crypto.subtle.sign('HMAC', key, data);
+    // hex encode
+    return Array.from(new Uint8Array(sig))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
+  }
+
+  /**
+   * Sumsub API 인증 헤더 생성
+   */
+  private async buildHeaders(
+    method: string,
+    uri: string,
+    body: string,
+  ): Promise<Record<string, string>> {
+    const ts = Math.floor(Date.now() / 1000);
+    const sig = await this.createSignature(method, uri, body, ts);
+
+    return {
+      'Content-Type': 'application/json',
+      'X-App-Token': this.appToken,
+      'X-App-Access-Ts': ts.toString(),
+      'X-App-Access-Sig': sig,
+    };
+  }
+
+  async sendTransferAuth(
+    target: VaspTarget,
+    request: AdapterTransferRequest,
+    hubPrivateKey: string,
+    hubVaspEntityId: string,
+  ): Promise<AdapterTransferResponse> {
+    const startTime = Date.now();
+
+    if (!this.appToken || !this.secretKey) {
+      return {
+        result: 'denied',
+        reasonType: 'SUMSUB_NOT_CONFIGURED',
+        reasonMsg: 'Sumsub credentials not set (SUMSUB_APP_TOKEN / SUMSUB_SECRET_KEY)',
+        protocol: 'sumsub',
+        latencyMs: Date.now() - startTime,
+      };
+    }
+
+    // Sumsub Travel Rule 트랜잭션 생성
+    // POST /resources/applicants/{applicantId}/kyt/txns/-/data
+    // applicantId는 Hub 자체 ID 사용 (VASP 레벨 트랜잭션)
+    const applicantId = Deno.env.get('SUMSUB_APPLICANT_ID') || hubVaspEntityId;
+    const uri = `/resources/applicants/${applicantId}/kyt/txns/-/data`;
+
+    const txnBody = JSON.stringify({
+      type: 'travelRule',
+      txnId: request.transferId,
+      txnDate: new Date().toISOString(),
+      direction: 'out',
+      amount: parseFloat(request.amount),
+      currencyCode: request.currency,
+      props: {
+        // Originator 정보 (송신 VASP)
+        direction: 'out',
+        originatorVaspEntityId: request.originatorVaspEntityId ?? hubVaspEntityId,
+        // Beneficiary 정보 (수신측)
+        beneficiaryVaspEntityId: target.vaspEntityId,
+        beneficiaryVaspName: target.vaspName,
+        // 지갑 주소
+        address: request.address ?? '',
+        tag: request.tag ?? '',
+        network: request.network ?? '',
+        // IVMS101 payload (암호화된 상태 전달)
+        payload: request.payload,
+        // 거래 정보
+        tradePrice: request.tradePrice ?? '0',
+        tradeCurrency: request.tradeCurrency ?? 'KRW',
+        isExceedingThreshold: request.isExceedingThreshold ?? false,
+      },
+    });
+
+    const headers = await this.buildHeaders('POST', uri, txnBody);
+
+    try {
+      const res = await fetch(`${this.baseUrl}${uri}`, {
+        method: 'POST',
+        headers,
+        body: txnBody,
+      });
+
+      const latencyMs = Date.now() - startTime;
+
+      if (!res.ok) {
+        const errBody = await res.text();
+        return {
+          result: 'denied',
+          reasonType: 'SUMSUB_ERROR',
+          reasonMsg: `Sumsub API ${res.status}: ${errBody.slice(0, 200)}`,
+          protocol: 'sumsub',
+          latencyMs,
+        };
+      }
+
+      const data = await res.json() as Record<string, unknown>;
+
+      // Sumsub 응답 해석
+      // status: 'pending' | 'completed' | 'rejected' 등
+      const status = (data.status as string) ?? 'pending';
+      let result: 'verified' | 'denied' | 'pending' = 'pending';
+
+      if (status === 'completed' || status === 'approved') {
+        result = 'verified';
+      } else if (status === 'rejected' || status === 'declined') {
+        result = 'denied';
+      } else {
+        // pending — Sumsub이 TRUST를 통해 비동기 처리 중
+        result = 'pending';
+      }
+
+      return {
+        result,
+        reasonType: result === 'denied' ? (data.rejectReason as string) ?? 'SUMSUB_REJECTED' : undefined,
+        reasonMsg: data.reasonMsg as string | undefined,
+        remoteTransferId: (data.id as string) ?? (data.txnId as string),
+        protocol: 'sumsub',
+        latencyMs,
+      };
+    } catch (err) {
+      return {
+        result: 'denied',
+        reasonType: 'CONNECTION_ERROR',
+        reasonMsg: `Failed to reach Sumsub: ${err instanceof Error ? err.message : 'Unknown'}`,
+        protocol: 'sumsub',
+        latencyMs: Date.now() - startTime,
+      };
+    }
+  }
+
+  async sendTransferResult(
+    target: VaspTarget,
+    transferId: string,
+    txid: string,
+    vout?: string,
+  ) {
+    // Sumsub에 TXID 업데이트
+    // PATCH /resources/kyt/txns/{txnId}/data
+    const uri = `/resources/kyt/txns/${transferId}/data`;
+    const body = JSON.stringify({
+      props: { txid, vout, status: 'confirmed' },
+    });
+
+    try {
+      const headers = await this.buildHeaders('PATCH', uri, body);
+      const res = await fetch(`${this.baseUrl}${uri}`, {
+        method: 'PATCH',
+        headers,
+        body,
+      });
+      return { success: res.ok, error: res.ok ? undefined : `Sumsub ${res.status}` };
+    } catch (err) {
+      return { success: false, error: err instanceof Error ? err.message : 'Unknown' };
+    }
+  }
+
+  async sendTransferFinish(
+    target: VaspTarget,
+    transferId: string,
+    reasonType?: string,
+    reasonMsg?: string,
+  ) {
+    // Sumsub에 취소 알림
+    const uri = `/resources/kyt/txns/${transferId}/data`;
+    const body = JSON.stringify({
+      props: { status: 'canceled', reasonType, reasonMsg },
+    });
+
+    try {
+      const headers = await this.buildHeaders('PATCH', uri, body);
+      const res = await fetch(`${this.baseUrl}${uri}`, {
+        method: 'PATCH',
+        headers,
+        body,
+      });
+      return { success: res.ok, error: res.ok ? undefined : `Sumsub ${res.status}` };
+    } catch (err) {
+      return { success: false, error: err instanceof Error ? err.message : 'Unknown' };
+    }
   }
 }
 
@@ -473,6 +696,7 @@ function extractPublicKey(b64PrivateKey: string): string {
 
 const adapters: Record<string, ProtocolAdapter> = {
   code: new CodeVaspAdapter(),
+  sumsub: new SumsubAdapter(),
   verifyvasp: new VerifyVaspAdapter(),
   transight: new TransightInternalAdapter(),
   direct: new DirectAdapter(),
