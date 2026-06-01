@@ -3,14 +3,13 @@
 -- CODE VASP 호환 + TranSight 확장
 -- ==========================================================
 
--- Enable UUID extension
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+-- gen_random_uuid()는 PostgreSQL 13+ 내장 함수 (Supabase Cloud 호환)
 
 -- ==========================================================
 -- 1. vasps — VASP 레지스트리
 -- ==========================================================
 CREATE TABLE vasps (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   vasp_entity_id TEXT UNIQUE NOT NULL,        -- CODE: vaspEntityId (고유 식별자)
   vasp_name TEXT NOT NULL,                    -- CODE: vaspName (표시 이름)
   vasp_legal_name TEXT,                       -- CODE: vaspLegalName (법적 등록명)
@@ -33,7 +32,7 @@ CREATE INDEX idx_vasps_health ON vasps(health);
 -- 2. public_keys — VASP 공개키 관리
 -- ==========================================================
 CREATE TABLE public_keys (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   vasp_id UUID NOT NULL REFERENCES vasps(id) ON DELETE CASCADE,
   public_key TEXT NOT NULL,                   -- Base64 Ed25519 verify key
   algorithm TEXT NOT NULL DEFAULT 'Ed25519',
@@ -50,7 +49,7 @@ CREATE INDEX idx_public_keys_active ON public_keys(vasp_id, is_active) WHERE is_
 -- 3. transfers — Travel Rule 전송 메시지
 -- ==========================================================
 CREATE TABLE transfers (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   transfer_id TEXT UNIQUE NOT NULL,           -- UUID v4 (CODE transferId)
   status TEXT NOT NULL DEFAULT 'wait',        -- wait|verified|denied|pending|processing|wait-confirmed|confirmed|canceled
   direction TEXT NOT NULL,                    -- outgoing | incoming
@@ -96,7 +95,7 @@ ALTER TABLE transfers ADD CONSTRAINT chk_transfer_direction
 -- 온체인 입금 감지 ↔ TR 메시지 비동기 매칭
 -- ==========================================================
 CREATE TABLE ttl_queue (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   match_key TEXT NOT NULL,                    -- 매칭 키 (wallet_address:currency:amount 등)
   transfer_id UUID REFERENCES transfers(id),
   transfer_data JSONB NOT NULL,               -- 매칭에 필요한 데이터
@@ -116,7 +115,7 @@ CREATE INDEX idx_ttl_queue_transfer ON ttl_queue(transfer_id);
 -- 5. audit_log — 감사 로그 (규제 준수)
 -- ==========================================================
 CREATE TABLE audit_log (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   event_type TEXT NOT NULL,                   -- transfer.created, transfer.status_changed, vasp.registered, ...
   entity_type TEXT NOT NULL,                  -- transfer | vasp | public_key
   entity_id UUID,
