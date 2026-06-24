@@ -168,13 +168,13 @@ Content-Type: application/json
 ::: code-group
 
 ```bash [List VASPs]
-curl -H "Authorization: Bearer $ANON_KEY" \
-  https://your-project.supabase.co/functions/v1/vasp-registry
+curl -H "Authorization: Bearer $API_KEY" \
+  https://api.transight.io/v1/vasp-registry
 ```
 
 ```bash [Register VASP]
 curl -X POST \
-  -H "Authorization: Bearer $ANON_KEY" \
+  -H "Authorization: Bearer $API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "vasp_entity_id": "my-exchange",
@@ -183,7 +183,7 @@ curl -X POST \
     "endpoint_url": "https://my-exchange.com/tr",
     "public_key": "abc123=="
   }' \
-  https://your-project.supabase.co/functions/v1/vasp-registry
+  https://api.transight.io/v1/vasp-registry
 ```
 
 :::

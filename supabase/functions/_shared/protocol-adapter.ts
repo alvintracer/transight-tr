@@ -18,6 +18,19 @@
 // Types
 // ============================================================
 
+/** GTR Adapter Options (클라이언트가 GTR 관련 파라미터 지정 시 사용) */
+export interface GtrAdapterOptions {
+  mode?: 'PII_VERIFICATION' | 'REENCRYPT_TO_GTR';
+  verifyDirection?: number;
+  targetVaspCode?: string;
+  initiatorPublicKey?: string;
+  targetVaspPublicKey?: string;
+  expectVerifyFields?: string[];
+  payloadFormat?: 'GTR_CURVE25519_ENCRYPTED';
+  lawThresholdEnabled?: boolean;
+  piiSecuredInfo?: Record<string, unknown>;
+}
+
 export interface AdapterTransferRequest {
   transferId: string;
   currency: string;
@@ -30,6 +43,10 @@ export interface AdapterTransferRequest {
   tag?: string;
   network?: string;
   originatorVaspEntityId?: string;
+  /** 어댑터별 추가 옵션 */
+  adapterOptions?: {
+    gtr?: GtrAdapterOptions;
+  };
 }
 
 export interface AdapterTransferResponse {
@@ -630,6 +647,377 @@ class DirectAdapter implements ProtocolAdapter {
 }
 
 // ============================================================
+// GTR Adapter (Global Travel Rule — PII Verification)
+// ============================================================
+
+/** GTR 검증 필드 기본값 */
+const GTR_DEFAULT_NATURAL_PERSON_FIELDS = ['110026', '110025'];  // Name + DOB
+
+/** SHA-256 해시 (payload 로깅용, PII 원문 저장 방지) */
+async function sha256Safe(input?: string): Promise<string> {
+  if (!input) return '';
+  const data = new TextEncoder().encode(input);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(hashBuffer))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+class GtrAdapter implements ProtocolAdapter {
+  name = 'gtr';
+
+  private baseUrl: string;
+  private apiKey: string;
+
+  constructor() {
+    this.baseUrl = Deno.env.get('GTR_API_BASE_URL') || 'https://api.globaltravelrule.com';
+    this.apiKey = Deno.env.get('GTR_API_KEY') || '';
+  }
+
+  async sendTransferAuth(
+    target: VaspTarget,
+    request: AdapterTransferRequest,
+    hubPrivateKey: string,
+    hubVaspEntityId: string,
+  ): Promise<AdapterTransferResponse> {
+    const startTime = Date.now();
+    const gtrOpts = request.adapterOptions?.gtr ?? {};
+
+    if (!this.apiKey) {
+      return {
+        result: 'denied',
+        reasonType: 'GTR_NOT_CONFIGURED',
+        reasonMsg: 'GTR API Key not set (GTR_API_KEY)',
+        protocol: 'gtr',
+        latencyMs: Date.now() - startTime,
+      };
+    }
+
+    // 1. GTR VASP 프로필 조회 (Supabase에서)
+    const gtrProfile = await this.loadGtrProfile(target.vaspEntityId);
+
+    if (!gtrProfile) {
+      return {
+        result: 'denied',
+        reasonType: 'VASP_NOT_FOUND',
+        reasonMsg: `GTR VASP profile not found for "${target.vaspEntityId}"`,
+        protocol: 'gtr',
+        latencyMs: Date.now() - startTime,
+      };
+    }
+
+    if (gtrProfile.status !== 'active') {
+      return {
+        result: 'denied',
+        reasonType: 'VASP_HEALTH_DOWN',
+        reasonMsg: `GTR VASP "${gtrProfile.gtr_vasp_code}" is ${gtrProfile.status}`,
+        protocol: 'gtr',
+        latencyMs: Date.now() - startTime,
+      };
+    }
+
+    // 2. 공개키 만료 체크
+    if (gtrProfile.target_public_key_expires_at) {
+      const expiresAt = new Date(gtrProfile.target_public_key_expires_at);
+      if (expiresAt < new Date()) {
+        return {
+          result: 'denied',
+          reasonType: 'VASP_KEY_EXPIRED',
+          reasonMsg: `GTR target VASP public key expired at ${gtrProfile.target_public_key_expires_at}`,
+          protocol: 'gtr',
+          latencyMs: Date.now() - startTime,
+        };
+      }
+    }
+
+    // 3. One-Step 요청 빌드
+    const gtrRequest = {
+      requestId: `TTR-${request.transferId}`,
+      ticker: request.currency,
+      amount: request.amount,
+      address: request.address ?? '',
+      tag: request.tag ?? '',
+      network: request.network ?? '',
+      txId: null,
+      verifyDirection: gtrOpts.verifyDirection ?? 2,  // Pre-transaction
+      targetVaspCode: gtrOpts.targetVaspCode ?? gtrProfile.gtr_vasp_code,
+      encryptedPayload: request.payload,
+      initiatorPublicKey: gtrOpts.initiatorPublicKey ?? Deno.env.get('GTR_PUBLIC_KEY') ?? '',
+      targetVaspPublicKey: gtrOpts.targetVaspPublicKey ?? gtrProfile.target_public_key ?? '',
+      fiatName: request.tradeCurrency ?? 'KRW',
+      fiatPrice: request.tradePrice ?? null,
+      lawThresholdEnabled: gtrOpts.lawThresholdEnabled ?? request.isExceedingThreshold ?? false,
+      expectVerifyFields: gtrOpts.expectVerifyFields ?? GTR_DEFAULT_NATURAL_PERSON_FIELDS,
+      piiSecuredInfo: gtrOpts.piiSecuredInfo ?? undefined,
+    };
+
+    // 4. GTR API 호출
+    try {
+      const res = await fetch(`${this.baseUrl}/api/verify/v2/one_step`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-KEY': this.apiKey,
+        },
+        body: JSON.stringify(gtrRequest),
+        signal: AbortSignal.timeout(10_000),  // 10초 타임아웃
+      });
+
+      const latencyMs = Date.now() - startTime;
+
+      if (!res.ok) {
+        const errBody = await res.text().catch(() => '');
+
+        // GTR 로그 (에러)
+        await this.insertGtrLog({
+          transferId: target.vaspEntityId,  // Edge Function에서 실제 DB ID로 교체
+          gtrRequestId: gtrRequest.requestId,
+          targetVaspCode: gtrRequest.targetVaspCode,
+          verifyDirection: gtrRequest.verifyDirection,
+          requestPayloadHash: await sha256Safe(request.payload),
+          latencyMs,
+          httpStatus: res.status,
+          errorCode: `HTTP_${res.status}`,
+          errorMessage: errBody.slice(0, 200),
+        });
+
+        return {
+          result: 'denied',
+          reasonType: 'CHANNEL_ROUTING_FAILED',
+          reasonMsg: `GTR API ${res.status}: ${errBody.slice(0, 200)}`,
+          protocol: 'gtr',
+          latencyMs,
+        };
+      }
+
+      const gtrResponse = await res.json() as Record<string, unknown>;
+      const gtrData = gtrResponse.data as Record<string, unknown> | undefined;
+      const verifyFields = (gtrData?.verifyFields as Array<Record<string, unknown>>) ?? [];
+
+      // 5. GTR 로그 (성공)
+      await this.insertGtrLog({
+        transferId: target.vaspEntityId,
+        gtrRequestId: gtrRequest.requestId,
+        gtrTravelruleId: gtrData?.travelruleId as string | undefined,
+        targetVaspCode: gtrRequest.targetVaspCode,
+        verifyDirection: gtrRequest.verifyDirection,
+        verifyStatus: gtrResponse.verifyStatus as number | undefined,
+        verifyMessage: gtrResponse.verifyMessage as string | undefined,
+        verifyFields,
+        requestPayloadHash: await sha256Safe(request.payload),
+        responsePayloadHash: await sha256Safe(gtrData?.encryptedPayload as string | undefined),
+        latencyMs,
+        httpStatus: 200,
+      });
+
+      // 6. GTR 응답 → TTR 결과 매핑
+      const mapped = this.mapGtrToTtrResult(gtrResponse, verifyFields);
+
+      return {
+        result: mapped.result,
+        reasonType: mapped.reasonType,
+        reasonMsg: mapped.reasonMsg,
+        payload: gtrData?.encryptedPayload as string | undefined,
+        remoteTransferId: gtrData?.travelruleId as string | undefined,
+        protocol: 'gtr',
+        latencyMs,
+      };
+
+    } catch (err) {
+      const latencyMs = Date.now() - startTime;
+      const isTimeout = err instanceof DOMException && err.name === 'AbortError';
+
+      await this.insertGtrLog({
+        transferId: target.vaspEntityId,
+        gtrRequestId: gtrRequest.requestId,
+        targetVaspCode: gtrRequest.targetVaspCode,
+        verifyDirection: gtrRequest.verifyDirection,
+        requestPayloadHash: await sha256Safe(request.payload),
+        latencyMs,
+        errorCode: isTimeout ? 'TIMEOUT' : 'CONNECTION_ERROR',
+        errorMessage: err instanceof Error ? err.message : 'Unknown error',
+      });
+
+      return {
+        result: 'pending',
+        reasonType: isTimeout ? 'CHANNEL_TIMEOUT' : 'CHANNEL_ROUTING_FAILED',
+        reasonMsg: isTimeout
+          ? 'GTR verification timed out (10s)'
+          : `GTR connection failed: ${err instanceof Error ? err.message : 'Unknown'}`,
+        protocol: 'gtr',
+        latencyMs,
+      };
+    }
+  }
+
+  /**
+   * GTR 응답 → TTR 결과 매핑
+   * Guide Section 12 기반
+   */
+  private mapGtrToTtrResult(
+    gtrResponse: Record<string, unknown>,
+    verifyFields: Array<Record<string, unknown>>,
+  ): { result: 'verified' | 'denied' | 'pending'; reasonType?: string; reasonMsg?: string } {
+    // API 에러
+    if (!gtrResponse.success) {
+      return {
+        result: 'pending',
+        reasonType: 'GTR_SERVICE_ERROR',
+        reasonMsg: (gtrResponse.verifyMessage as string) ?? 'GTR request failed',
+      };
+    }
+
+    // 필드 불일치 (status=2)
+    const mismatchFields = verifyFields.filter(f => f.status === 2);
+    if (mismatchFields.length > 0) {
+      const hasNameMismatch = mismatchFields.some(f => f.type === '110026' || f.type === '111001');
+      const hasDobMismatch = mismatchFields.some(f => f.type === '110025');
+      let reasonType = 'UNKNOWN';
+      if (hasNameMismatch) reasonType = 'INPUT_NAME_MISMATCHED';
+      else if (hasDobMismatch) reasonType = 'DOB_MISMATCHED';
+
+      return {
+        result: 'denied',
+        reasonType,
+        reasonMsg: `GTR PII verification mismatch: ${mismatchFields.map(f => f.type).join(', ')}`,
+      };
+    }
+
+    // 필수 필드 누락 (status=4)
+    const missingFields = verifyFields.filter(f => f.status === 4);
+    if (missingFields.length > 0) {
+      return {
+        result: 'denied',
+        reasonType: 'LACK_OF_INFORMATION',
+        reasonMsg: `Required PII field missing: ${missingFields.map(f => f.type).join(', ')}`,
+      };
+    }
+
+    // 미지원 필드 (status=3)
+    const unsupportedFields = verifyFields.filter(f => f.status === 3);
+    if (unsupportedFields.length > 0) {
+      return {
+        result: 'pending',
+        reasonType: 'GTR_FIELD_NOT_SUPPORTED',
+        reasonMsg: `Counterparty VASP does not support fields: ${unsupportedFields.map(f => f.type).join(', ')}`,
+      };
+    }
+
+    // 모두 일치 → verified
+    return { result: 'verified' };
+  }
+
+  /**
+   * GTR VASP 프로필 조회
+   */
+  private async loadGtrProfile(vaspEntityId: string): Promise<Record<string, unknown> | null> {
+    try {
+      const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+      const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+
+      const res = await fetch(
+        `${supabaseUrl}/rest/v1/gtr_vasp_profiles?select=*&vasp_id=eq.${vaspEntityId}`,
+        {
+          headers: {
+            'apikey': supabaseKey,
+            'Authorization': `Bearer ${supabaseKey}`,
+          },
+        },
+      );
+
+      // vasp_entity_id → vasp_id join이 필요하므로 vasps 먼저 조회
+      const vaspRes = await fetch(
+        `${supabaseUrl}/rest/v1/vasps?select=id&vasp_entity_id=eq.${vaspEntityId}`,
+        {
+          headers: {
+            'apikey': supabaseKey,
+            'Authorization': `Bearer ${supabaseKey}`,
+          },
+        },
+      );
+      const vasps = await vaspRes.json() as Array<Record<string, unknown>>;
+      if (!vasps || vasps.length === 0) return null;
+
+      const vaspId = vasps[0].id as string;
+
+      const profileRes = await fetch(
+        `${supabaseUrl}/rest/v1/gtr_vasp_profiles?select=*&vasp_id=eq.${vaspId}&limit=1`,
+        {
+          headers: {
+            'apikey': supabaseKey,
+            'Authorization': `Bearer ${supabaseKey}`,
+          },
+        },
+      );
+      const profiles = await profileRes.json() as Array<Record<string, unknown>>;
+      return profiles?.[0] ?? null;
+
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * GTR 전송 로그 삽입 (PII 미저장, 해시만)
+   */
+  private async insertGtrLog(log: Record<string, unknown>): Promise<void> {
+    try {
+      const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+      const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+
+      await fetch(`${supabaseUrl}/rest/v1/gtr_transfer_logs`, {
+        method: 'POST',
+        headers: {
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal',
+        },
+        body: JSON.stringify({
+          transfer_id: log.transferId,
+          gtr_request_id: log.gtrRequestId,
+          gtr_travelrule_id: log.gtrTravelruleId ?? null,
+          target_vasp_code: log.targetVaspCode,
+          verify_direction: log.verifyDirection ?? null,
+          verify_status: log.verifyStatus ?? null,
+          verify_message: log.verifyMessage ?? null,
+          verify_fields: log.verifyFields ?? [],
+          request_payload_hash: log.requestPayloadHash ?? null,
+          response_payload_hash: log.responsePayloadHash ?? null,
+          latency_ms: log.latencyMs ?? null,
+          http_status: log.httpStatus ?? null,
+          error_code: log.errorCode ?? null,
+          error_message: log.errorMessage ?? null,
+        }),
+      });
+    } catch (err) {
+      console.error('[GtrAdapter] Failed to insert GTR log:', err);
+    }
+  }
+
+  async sendTransferResult(
+    _target: VaspTarget,
+    _transferId: string,
+    _txid: string,
+    _vout?: string,
+  ) {
+    // GTR PII Verification은 Pre-transaction 전용 → TXID 보고 불필요
+    // Post-transaction은 Phase 2
+    return { success: true };
+  }
+
+  async sendTransferFinish(
+    _target: VaspTarget,
+    _transferId: string,
+    _reasonType?: string,
+    _reasonMsg?: string,
+  ) {
+    // GTR은 취소 API 없음 (One-Step 검증이므로)
+    return { success: true };
+  }
+}
+
+// ============================================================
 // CODE VASP 헤더 빌더 (서명 생성)
 // ============================================================
 
@@ -700,6 +1088,7 @@ const adapters: Record<string, ProtocolAdapter> = {
   verifyvasp: new VerifyVaspAdapter(),
   transight: new TransightInternalAdapter(),
   direct: new DirectAdapter(),
+  gtr: new GtrAdapter(),
 };
 
 /**

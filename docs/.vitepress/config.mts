@@ -4,6 +4,9 @@ export default defineConfig({
   title: 'TranSight TR',
   description: 'Asymmetric Bridge Travel Rule Solution — API Documentation',
 
+  // 다크모드 기본
+  appearance: 'dark',
+
   // 다국어 설정
   locales: {
     ko: {
@@ -12,10 +15,12 @@ export default defineConfig({
       title: 'TranSight TR',
       description: '비대칭 브릿지 기반 금융기관 호환 트래블룰 솔루션 — API 문서',
       themeConfig: {
+        siteTitle: 'TR',
         nav: [
           { text: '가이드', link: '/ko/guide/introduction' },
           { text: 'API', link: '/ko/api/overview' },
           { text: '레퍼런스', link: '/ko/reference/ivms101' },
+          { text: '내부 문서', link: '/ko/internal/strategy' },
         ],
         sidebar: {
           '/ko/guide/': [
@@ -32,6 +37,7 @@ export default defineConfig({
               text: '핵심 개념',
               items: [
                 { text: '비대칭 브릿지', link: '/ko/guide/asymmetric-bridge' },
+                { text: 'Atomic KYT Gate', link: '/ko/guide/kyt-gate' },
                 { text: '상태 머신', link: '/ko/guide/state-machine' },
                 { text: '암호화', link: '/ko/guide/encryption' },
               ],
@@ -50,6 +56,12 @@ export default defineConfig({
                 { text: 'Transfer Result', link: '/ko/api/transfer-result' },
               ],
             },
+            {
+              text: 'Protocol Adapters',
+              items: [
+                { text: 'GTR Adapter', link: '/ko/api/gtr-adapter' },
+              ],
+            },
           ],
           '/ko/reference/': [
             {
@@ -58,6 +70,16 @@ export default defineConfig({
                 { text: 'IVMS101 스키마', link: '/ko/reference/ivms101' },
                 { text: '에러 코드', link: '/ko/reference/error-codes' },
                 { text: '상태 코드', link: '/ko/reference/status-codes' },
+              ],
+            },
+          ],
+          '/ko/internal/': [
+            {
+              text: '내부 공유 문서',
+              items: [
+                { text: 'TTR 전략 (v2)', link: '/ko/internal/strategy' },
+                { text: '구현 현황', link: '/ko/internal/implementation-status' },
+                { text: 'VASP 연동 비용', link: '/ko/internal/vasp-integration-cost' },
               ],
             },
           ],
@@ -70,10 +92,12 @@ export default defineConfig({
       title: 'TranSight TR',
       description: 'Asymmetric Bridge Travel Rule Solution — API Documentation',
       themeConfig: {
+        siteTitle: 'TR',
         nav: [
           { text: 'Guide', link: '/en/guide/introduction' },
           { text: 'API', link: '/en/api/overview' },
           { text: 'Reference', link: '/en/reference/ivms101' },
+          { text: 'Internal', link: '/ko/internal/strategy' },
         ],
         sidebar: {
           '/en/guide/': [
@@ -90,6 +114,7 @@ export default defineConfig({
               text: 'Core Concepts',
               items: [
                 { text: 'Asymmetric Bridge', link: '/en/guide/asymmetric-bridge' },
+                { text: 'Atomic KYT Gate', link: '/en/guide/kyt-gate' },
                 { text: 'State Machine', link: '/en/guide/state-machine' },
                 { text: 'Encryption', link: '/en/guide/encryption' },
               ],
@@ -106,6 +131,12 @@ export default defineConfig({
                 { text: 'Transfer Response', link: '/en/api/transfer-response' },
                 { text: 'Transfer Status', link: '/en/api/transfer-status' },
                 { text: 'Transfer Result', link: '/en/api/transfer-result' },
+              ],
+            },
+            {
+              text: 'Protocol Adapters',
+              items: [
+                { text: 'GTR Adapter', link: '/ko/api/gtr-adapter' },
               ],
             },
           ],
@@ -125,7 +156,8 @@ export default defineConfig({
   },
 
   themeConfig: {
-    logo: '/logo.svg',
+    logo: { light: '/logo-dark.png', dark: '/logo-light.png' },
+    siteTitle: 'TR',
     socialLinks: [
       { icon: 'github', link: 'https://github.com/alvintracer/transight-tr' },
     ],
@@ -140,6 +172,6 @@ export default defineConfig({
 
   // Root redirect
   head: [
-    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/logo.svg' }],
+    ['link', { rel: 'icon', type: 'image/png', href: '/logo-favicon.png' }],
   ],
 });

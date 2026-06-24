@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Travel Rule 솔루션 아키텍처 종합 비교 분석</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap');
+  
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 11pt;
+    line-height: 1.7;
+    color: #1a1a2e;
+    background: #fff;
+    padding: 40px 60px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  @media print {
+    body { padding: 20px 30px; font-size: 10pt; }
+    .page-break { page-break-before: always; }
+    h1 { page-break-after: avoid; }
+    h2 { page-break-after: avoid; }
+    table { page-break-inside: avoid; }
+    pre { page-break-inside: avoid; }
+  }
+
+  h1 {
+    font-size: 22pt;
+    font-weight: 700;
+    color: #0f0f23;
+    margin-bottom: 8px;
+    border-bottom: 3px solid #2563eb;
+    padding-bottom: 12px;
+  }
+
+  .meta {
+    color: #64748b;
+    font-size: 10pt;
+    margin-bottom: 30px;
+    line-height: 1.5;
+  }
+
+  h2 {
+    font-size: 15pt;
+    font-weight: 700;
+    color: #1e3a5f;
+    margin-top: 36px;
+    margin-bottom: 14px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid #e2e8f0;
+  }
+
+  h3 {
+    font-size: 12pt;
+    font-weight: 600;
+    color: #334155;
+    margin-top: 24px;
+    margin-bottom: 10px;
+  }
+
+  p { margin-bottom: 10px; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 10pt;
+  }
+
+  th {
+    background: #1e3a5f;
+    color: #fff;
+    font-weight: 600;
+    padding: 10px 12px;
+    text-align: left;
+    border: 1px solid #1e3a5f;
+  }
+
+  td {
+    padding: 8px 12px;
+    border: 1px solid #e2e8f0;
+    vertical-align: top;
+  }
+
+  tr:nth-child(even) { background: #f8fafc; }
+
+  pre {
+    background: #1e293b;
+    color: #e2e8f0;
+    padding: 16px 20px;
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9pt;
+    line-height: 1.5;
+    overflow-x: auto;
+    margin: 14px 0;
+    white-space: pre;
+  }
+
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    background: #f1f5f9;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 9.5pt;
+    color: #be185d;
+  }
+
+  .callout {
+    border-left: 4px solid;
+    padding: 12px 16px;
+    margin: 16px 0;
+    border-radius: 0 6px 6px 0;
+    font-size: 10pt;
+  }
+
+  .callout-important {
+    border-color: #2563eb;
+    background: #eff6ff;
+  }
+
+  .callout-warning {
+    border-color: #f59e0b;
+    background: #fffbeb;
+  }
+
+  .callout-note {
+    border-color: #10b981;
+    background: #ecfdf5;
+  }
+
+  .callout-title {
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .highlight { 
+    background: #fef3c7; 
+    padding: 2px 4px; 
+    border-radius: 3px;
+    font-weight: 500;
+  }
+
+  .emoji { font-style: normal; }
+
+  .footer {
+    margin-top: 50px;
+    padding-top: 16px;
+    border-top: 1px solid #e2e8f0;
+    text-align: center;
+    color: #94a3b8;
+    font-size: 9pt;
+  }
+</style>
+</head>
+<body>
+
+<h1>Travel Rule 솔루션 아키텍처 종합 비교 분석</h1>
+<div class="meta">
+  <strong>작성일</strong>: 2026-06-04<br>
+  <strong>대상</strong>: CODEVASP · VerifyVASP · Sumsub · TranSight TR<br>
+  <strong>목적</strong>: 각 솔루션의 PII 처리 구조, 키 관리, Hub 역할을 비교하여 TTR의 아키텍처 방향성 수립
+</div>
+
+<h2>1. 요약: 4종 솔루션 구조 한눈에 보기</h2>
+
+<table>
+  <tr>
+    <th></th>
+    <th>CODEVASP</th>
+    <th>VerifyVASP</th>
+    <th>Sumsub</th>
+    <th>TranSight TR</th>
+  </tr>
+  <tr>
+    <td><strong>모델</strong></td>
+    <td>Hub relay</td>
+    <td>Hub relay + Enclave</td>
+    <td>Hub relay + 프로토콜 변환</td>
+    <td>Hub relay</td>
+  </tr>
+  <tr>
+    <td><strong>키 관리</strong></td>
+    <td>정적 레지스트리</td>
+    <td>동적 키 교환 (Enclave)</td>
+    <td>Sumsub 내부 관리</td>
+    <td>정적 레지스트리</td>
+  </tr>
+  <tr>
+    <td><strong>설치물</strong></td>
+    <td>❌ 없음</td>
+    <td>✅ Enclave Docker 필수</td>
+    <td>❌ SDK/API만</td>
+    <td>❌ 없음</td>
+  </tr>
+  <tr>
+    <td><strong>Hub가 PII 보나</strong></td>
+    <td>❌ 암호문 relay</td>
+    <td>❌ 암호문 relay</td>
+    <td><span class="highlight">⚠️ 평문 PII 처리</span></td>
+    <td>❌ 암호문 relay</td>
+  </tr>
+  <tr>
+    <td><strong>암호화</strong></td>
+    <td>NaCl Box (VASP 직접)</td>
+    <td>Enclave 내부</td>
+    <td>Sumsub 서버 내부</td>
+    <td>NaCl Box (VASP 직접)</td>
+  </tr>
+  <tr>
+    <td><strong>KYT</strong></td>
+    <td>❌ 별도</td>
+    <td>Optional (Enclave)</td>
+    <td>Sumsub KYT</td>
+    <td>✅ 원자적 통합</td>
+  </tr>
+  <tr>
+    <td><strong>크로스 네트워크</strong></td>
+    <td>❌ 자체 멤버만</td>
+    <td>❌ 자체 멤버만</td>
+    <td>✅ TRUST/GTR/TRP</td>
+    <td>🔧 Protocol Adapter</td>
+  </tr>
+  <tr>
+    <td><strong>오픈/폐쇄</strong></td>
+    <td>반폐쇄</td>
+    <td>폐쇄 (소스 비공개)</td>
+    <td>폐쇄</td>
+    <td>오픈 가능</td>
+  </tr>
+</table>
+
+<h2>2. CODEVASP 구조</h2>
+
+<h3>모델: Hub Relay + 정적 레지스트리</h3>
+<p>CODEVASP는 <strong>레지스트리</strong> 역할(퍼블릭키 사전 등록/조회)과 <strong>Hub relay</strong> 역할(암호문 중개 전달)을 동시에 수행한다. VASP가 상대방 엔드포인트에 직접 통신하는 P2P 모델이 <strong>아니다</strong>.</p>
+
+<h3>코드 근거</h3>
+<pre>// CodeVaspAdapter — protocol-adapter.ts
+const url = `${this.baseUrl}/v1/code/transfer/${target.vaspEntityId}`;
+// baseUrl = 'https://trapi-dev.codevasp.com'  ← CODE 서버에 POST</pre>
+
+<p>빗썸 엔드포인트로 직접 보내는 것이 아니라, <code>trapi.codevasp.com</code>에 POST하면 CODE 서버가 빗썸에 중개 전달.</p>
+
+<h3>데이터 흐름</h3>
+<pre>송신 VASP              CODE Server                 수신 VASP
+    │                 trapi.codevasp.com               │
+    │                       │                          │
+    │  POST /v1/code/       │                          │
+    │  transfer/{vaspId}    │                          │
+    │  {                    │                          │
+    │    payload: NaCl(     │                          │
+    │      수신키, IVMS101) │  ← 암호문                │
+    │    amount, currency   │                          │
+    │  }                    │                          │
+    │──────────────────────►│                          │
+    │                       │  CODE가 수신VASP에 relay  │
+    │                       │  (암호문 그대로 전달)      │
+    │                       │─────────────────────────►│
+    │                       │                          │
+    │                       │  ❌ payload 복호화 불가   │</pre>
+
+<h3>실제 API 요청 본문</h3>
+<pre>{
+  "transferId": "uuid",
+  "currency": "BTC",
+  "amount": "1.0",
+  "payload": "NaCl(수신VASP키, IVMS101)=kF8x9...",  ← 🔒 암호문
+  "address": "bc1qxy2kgdyg...",
+  "isExceedingThreshold": true
+}</pre>
+
+<h3>키 관리</h3>
+<ul>
+  <li>퍼블릭키를 <strong>사전 등록</strong>(정적 레지스트리)</li>
+  <li>송신 VASP가 레지스트리에서 수신 VASP 퍼블릭키 조회 → NaCl Box 암호화</li>
+  <li>수신 VASP 엔드포인트는 알 필요 없음 (CODE가 라우팅)</li>
+</ul>
+
+<div class="page-break"></div>
+
+<h2>3. VerifyVASP 구조</h2>
+
+<h3>모델: Hub Relay + Enclave + 동적 키 교환</h3>
+<p>VerifyVASP는 각 VASP에 <strong>Enclave Docker</strong>를 설치하고, <strong>Central Server</strong>가 Enclave 간 메시지를 중개한다. 퍼블릭키를 사전 등록하지 않고, <strong>통신 시점에 실시간으로 키를 생성하고 교환</strong>한다.</p>
+
+<h3>핵심 컴포넌트</h3>
+<table>
+  <tr><th>컴포넌트</th><th>위치</th><th>역할</th></tr>
+  <tr><td><strong>Enclave</strong></td><td>VASP 자체 인프라 (Docker)</td><td>키 생성/관리, PII 암호화/복호화</td></tr>
+  <tr><td><strong>Central Server</strong></td><td>VerifyVASP 운영</td><td>키 교환 브로커 + 암호문 relay</td></tr>
+  <tr><td><strong>VASP Backend</strong></td><td>VASP 자체</td><td>비즈니스 로직 + Enclave API 호출</td></tr>
+</table>
+
+<h3>키 교환 프로세스 (VV 문서 Step 10~16)</h3>
+<pre>① 송신 Enclave: 캐시에 수신VASP 퍼블릭키 있는지 확인
+② 없으면 → Central Server에 수신VASP 퍼블릭키 요청
+③ Central → 수신VASP Enclave에 키 요청 전달
+④ 수신VASP Enclave: 새 키쌍 생성
+⑤ 수신VASP → Central → 송신VASP Enclave에 퍼블릭키 반환
+⑥ 송신 Enclave: 캐시에 저장 (이후 재사용)</pre>
+
+<h3>데이터 흐름 (VV 문서 Step 17~21)</h3>
+<pre>VASP 백엔드         Enclave A          Central Server        Enclave B          수신 VASP
+    │                   │                   │                   │                   │
+    │  평문 PII 전달    │                   │                   │                   │
+    │──────────────────►│                   │                   │                   │
+    │               암호화(수신키)          │                   │                   │
+    │                   │  암호문 전송      │                   │                   │
+    │                   │──────────────────►│                   │                   │
+    │                   │                   │  암호문 relay     │                   │
+    │                   │                   │──────────────────►│                   │
+    │                   │                   │              복호화(프라이빗키)        │
+    │                   │                   │                   │  평문 PII 전달    │
+    │                   │                   │                   │──────────────────►│</pre>
+
+<h3>CODEVASP와의 핵심 차이</h3>
+<table>
+  <tr><th></th><th>CODEVASP</th><th>VerifyVASP</th></tr>
+  <tr><td><strong>키 관리</strong></td><td>정적 레지스트리 (사전 등록)</td><td>동적 교환 (Enclave 실시간 생성)</td></tr>
+  <tr><td><strong>설치물</strong></td><td>❌ 없음</td><td>✅ Enclave Docker 필수</td></tr>
+  <tr><td><strong>암호화 주체</strong></td><td>VASP 백엔드가 직접 NaCl Box</td><td>Enclave가 암호화</td></tr>
+  <tr><td><strong>VASP 개발 부담</strong></td><td>API 연동 + NaCl 구현</td><td>API 연동 + Enclave 설치 + Callback 4종 구현</td></tr>
+  <tr><td><strong>Hub 역할</strong></td><td>암호문 relay만</td><td>키 교환 브로커 + 암호문 relay</td></tr>
+  <tr><td><strong>소스 공개</strong></td><td>API 규격 공개</td><td>Enclave 클로즈드 소스</td></tr>
+</table>
+
+<h3>VV 필수 구현 API (VASP 측)</h3>
+<ul>
+  <li>Verify User Account API — 계정 소유권 확인</li>
+  <li>Verify User API — 사용자 정보 검증</li>
+  <li>Check Transaction Status API — 트랜잭션 상태 확인</li>
+  <li>Callback API — 비동기 결과 수신</li>
+  <li>Database Setup — Enclave 전용 DB 구성</li>
+</ul>
+
+<div class="page-break"></div>
+
+<h2>4. Sumsub 구조</h2>
+
+<h3>모델: Hub Relay + 프로토콜 변환 게이트웨이</h3>
+<p>Sumsub은 VASP로부터 <span class="highlight">평문 PII를 API로 직접 전달</span>받아, TRUST/GTR/TRP 등의 프로토콜로 변환하여 상대방 VASP에 전송한다.</p>
+
+<h3>실제 API 요청 본문</h3>
+<pre>POST /resources/applicants/{applicantId}/kyt/txns/-/data
+
+{
+  "type": "travelRule",
+  "applicant": {
+    "firstName": "홍",            ← 🔓 평문
+    "lastName": "길동",            ← 🔓 평문
+    "dob": "1992-05-08",          ← 🔓 평문
+    "address": {
+      "country": "KOR",
+      "town": "Seoul",
+      "street": "강남대로 123"     ← 🔓 평문
+    }
+  },
+  "info": {
+    "direction": "out",
+    "amount": "1.0",
+    "currencyCode": "BTC"
+  }
+}</pre>
+
+<div class="callout callout-warning">
+  <div class="callout-title">⚠️ PII 평문 노출</div>
+  이름, 생년월일, 주소가 <strong>평문 JSON</strong>으로 Sumsub 서버에 전달된다. Sumsub이 이를 TRUST/GTR 프로토콜로 변환하는 과정에서 Sumsub 서버가 PII를 직접 처리.
+</div>
+
+<h3>CODE/TTR API와 비교</h3>
+<table>
+  <tr><th>필드</th><th>CODE/TTR API</th><th>Sumsub API</th></tr>
+  <tr><td>이름</td><td>❌ (payload 안에 암호화)</td><td>✅ firstName, lastName <strong>평문</strong></td></tr>
+  <tr><td>생년월일</td><td>❌</td><td>✅ dob <strong>평문</strong></td></tr>
+  <tr><td>주소</td><td>❌</td><td>✅ address <strong>평문</strong></td></tr>
+  <tr><td>지갑주소</td><td>✅ 메타데이터</td><td>✅</td></tr>
+  <tr><td>금액</td><td>✅ 메타데이터</td><td>✅</td></tr>
+</table>
+
+<h3>Sumsub의 장점</h3>
+<ul>
+  <li>크로스 네트워크: TRUST, GTR, TRP, Sygna 등 멀티 프로토콜 지원</li>
+  <li>Email fallback: 어디에도 안 속한 VASP에 이메일 기반 통보</li>
+  <li>SDK 제공: 개발 부담 최소</li>
+</ul>
+
+<div class="page-break"></div>
+
+<h2>5. TranSight TR 구조</h2>
+
+<h3>모델: Hub Relay + 정적 레지스트리 + KYT 원자적 통합</h3>
+<p>TTR은 CODEVASP와 동일한 구조(정적 레지스트리 + Hub relay + NaCl Box E2E)에 <strong>KYT 원자적 통합</strong>과 <strong>Protocol Adapter 기반 크로스 네트워크 확장</strong>을 추가한 모델.</p>
+
+<h3>Protocol Adapter 구조 (코드 기반)</h3>
+<table>
+  <tr><th>어댑터</th><th>보내는 곳</th><th>모델</th><th>PII 상태</th></tr>
+  <tr><td><code>code</code></td><td>trapi.codevasp.com</td><td>Hub relay</td><td>🔒 NaCl 암호문 relay</td></tr>
+  <tr><td><code>sumsub</code></td><td>api.sumsub.com</td><td>Hub relay</td><td>🔓 평문 PII</td></tr>
+  <tr><td><code>verifyvasp</code></td><td>VV Central Server</td><td>Hub relay</td><td>🔒 암호문 relay</td></tr>
+  <tr><td><code>transight</code></td><td>내부 DB</td><td>내부</td><td>암호문 저장</td></tr>
+  <tr><td><code>direct</code></td><td>수신 VASP 자체 endpoint</td><td>P2P 직접</td><td>🔒 NaCl 암호문</td></tr>
+</table>
+
+<h3>Hub가 보는 것 vs 못 보는 것</h3>
+<pre>┌──────────────────────────────────────────┐
+│  TTR Hub가 보는 것 (메타데이터):           │
+│  ✅ transferId, amount, currency          │
+│  ✅ address (지갑주소) → KYT 검증에 사용   │
+│  ✅ beneficiaryVaspEntityId               │
+│                                          │
+│  TTR Hub가 못 보는 것 (payload 안):        │
+│  ❌ 이름 (firstName, lastName)            │
+│  ❌ 생년월일 (dateOfBirth)                 │
+│  ❌ 주소 (residenceAddress)               │
+│  ❌ 전체 IVMS101 PII                      │
+│                                          │
+│  payload = NaCl Box(수신VASP키, PII)      │
+│  Hub는 수신 VASP 프라이빗키 없으므로        │
+│  복호화 구조적으로 불가능                   │
+└──────────────────────────────────────────┘</pre>
+
+<div class="page-break"></div>
+
+<h2>6. 구간별 PII 상태 비교</h2>
+
+<table>
+  <tr><th>구간</th><th>CODEVASP</th><th>VerifyVASP</th><th>Sumsub</th><th>TTR</th></tr>
+  <tr><td>송신 VASP 내부</td><td>🔓 평문</td><td>🔓 평문</td><td>🔓 평문</td><td>🔓 평문</td></tr>
+  <tr><td>송신 → Hub 전송</td><td>🔒 암호문</td><td>🔒 암호문</td><td><span class="highlight">🔓 평문</span></td><td>🔒 암호문</td></tr>
+  <tr><td>Hub/Central 내부</td><td>🔒 암호문</td><td>🔒 암호문</td><td><span class="highlight">🔓 평문</span></td><td>🔒 암호문</td></tr>
+  <tr><td>Hub → 수신 전송</td><td>🔒 암호문</td><td>🔒 암호문</td><td>프로토콜별</td><td>🔒 암호문</td></tr>
+  <tr><td>수신 VASP 내부</td><td>🔓 평문</td><td>🔓 평문</td><td>🔓 평문</td><td>🔓 평문</td></tr>
+</table>
+
+<h2>7. 키 교환 방식 비교</h2>
+<pre>CODEVASP (정적):
+  "빗썸 키 뭐야?" → 레지스트리 조회 → "여기 있어" → 끝
+
+VerifyVASP (동적):
+  "빗썸 키 줘" → Central → 빗썸Enclave: "새로 만들게"
+  → Central → 송신Enclave: "받았다, 캐시함"
+
+Sumsub:
+  키 교환 없음 — 평문 PII를 Sumsub에 전달, Sumsub이 알아서 처리
+
+TTR (정적 — CODE와 동일):
+  "빗썸 키 뭐야?" → vasp-registry 조회 → "여기 있어" → 끝</pre>
+
+<h2>8. 금융기관 망분리 문제</h2>
+<p>금융기관(은행, 증권사)은 <strong>망분리</strong> 규정으로 외부 VASP 엔드포인트에 직접 HTTP 요청 불가.</p>
+
+<div class="callout callout-note">
+  <div class="callout-title">✅ 해결: Hub Relay 구조</div>
+  CODEVASP, VV, Sumsub, TTR 모두 이미 Hub relay 구조이므로 금융기관은 <strong>Hub 엔드포인트 1개만 화이트리스트에 등록</strong>하면 모든 VASP와 통신 가능.
+</div>
+
+<h2>9. TTR 포지셔닝</h2>
+
+<div class="callout callout-important">
+  <div class="callout-title">TTR = CODEVASP 동일 구조 + 3가지 확장</div>
+  <ol>
+    <li><strong>KYT 원자적 통합</strong> — PII 전송 전 위험 주소 자동 차단</li>
+    <li><strong>Protocol Adapter</strong> — CODE, Sumsub, VV, Direct 멀티 프로토콜 라우팅</li>
+    <li><strong>금융기관 호환</strong> — Hub relay로 망분리 자연 해결</li>
+  </ol>
+</div>
+
+<h3>핵심 경쟁력 요약</h3>
+<table>
+  <tr><th>vs</th><th>TTR 장점</th></tr>
+  <tr><td>vs CODEVASP</td><td>KYT 원자적 통합 + 크로스 네트워크 Protocol Adapter</td></tr>
+  <tr><td>vs VerifyVASP</td><td>Enclave 설치 불필요, API만으로 동일 보안 수준</td></tr>
+  <tr><td>vs Sumsub</td><td>PII 보호 (Hub가 평문 안 봄) + 자체 KYT</td></tr>
+</table>
+
+<div class="footer">
+  <p>Bonanza Factory Co., Ltd. — TranSight TR Architecture Analysis</p>
+  <p>© 2026 All rights reserved.</p>
+</div>
+
+</body>
+</html>

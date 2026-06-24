@@ -21,8 +21,8 @@ The appropriate adapter is automatically selected based on the beneficiary VASP'
     │ Adapter  │ │(Int.)│ │ Adapter   │
     └────┬─────┘ └──┬───┘ └─────┬─────┘
          │          │           │
-    CODE API    Supabase   HTTPS/mTLS
-    (External)  (DB Direct) (Individual)
+     CODE API     Internal DB   HTTPS/mTLS
+     (External)  (DB Direct)   (Individual)
 ```
 
 ## Protocol Adapters
@@ -42,7 +42,7 @@ The appropriate adapter is automatically selected based on the beneficiary VASP'
 | Property | Details |
 |----------|---------|
 | Target | VASPs within TranSight network |
-| Method | Direct Supabase DB query |
+| Method | Direct Internal DB query |
 | Latency | ~0ms |
 | Features | No external API calls |
 
@@ -63,12 +63,17 @@ VerifyVASP uses a gRPC-based protocol. Requires a separate gRPC client.
 
 **Channel Security Levels**:
 
-| Channel | Target | Security |
-|---------|--------|----------|
-| `HTTPS` | Exchanges | TLS 1.3 + AES-256 |
-| `mTLS` | Digital Banks | Mutual Certificate |
-| `VPN` | Traditional Banks | IPSec Tunnel |
-| `LEASED_LINE` | Legacy Banks | Physical Isolation |
+Financial institutions can selectively utilize communication channel options optimized for their internal security standards and regulatory compliance policies.
+
+| Channel | Target Institution | Security & Key Features |
+|---------|--------------------|-------------------------|
+| `HTTPS` | Crypto Exchanges | TLS 1.3 + AES-256 standardized encrypted communication |
+| `mTLS` | Financial Institutions | Mutual certificate verification with OAuth 2.0 authorization |
+| `VPN` | Financial Institutions | Private virtual network configuration based on IPSec tunnel |
+| `LEASED_LINE` | Financial Institutions | Physical network segregation with direct private leased line integration |
+
+* **Customized Security Channels**: Establishes optimal channels—`mTLS`, `IPSec VPN`, or `Leased Line`—aligned with each financial institution's network infrastructure and internal compliance policies.
+* **Leased Line Option**: For financial institutions that have already established dedicated private lines, TranSight TR fully supports integration using their existing private leased line infrastructure, maintaining strict physical isolation.
 
 ## API Response Example
 

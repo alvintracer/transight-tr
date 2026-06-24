@@ -1,158 +1,117 @@
 # TranSight TR
 
-> **비대칭 브릿지 기반 금융기관 호환 트래블룰 솔루션**
+> 비대칭 브릿지 기반 금융기관 호환 트래블룰 솔루션
 
-CODE VASP 호환 Travel Rule Hub를 Supabase 기반으로 구축한 프로젝트입니다.
-국내 거래소(CODE), 글로벌 VASP(Sumsub/TRUST), 은행(전용선)을 단일 Hub에서 브릿징합니다.
+TranSight TR은 국내 거래소, 해외 VASP, 은행/핀테크를 하나의 Hub로 연결하는 Travel Rule 시스템입니다.  
+핵심 설계는 `Atomic KYT Gate + Protocol Adapter Layer + Supabase Edge Functions` 조합이며, KYT와 TR을 하나의 API 흐름으로 처리합니다.
 
-## 아키텍처
+## 한 줄 요약
 
-```
-                      ┌──────────────────────┐
-  VASP (거래소)  ──→  │    TranSight Hub     │  ←── 은행 (전용선)
-  카카오페이     ──→  │                      │  ←── 해외 VASP (Sumsub)
-                      │  ┌────────────────┐  │
-                      │  │ GATE 1: KYT    │  │  ← Atomic Gate
-                      │  │ GATE 2: TR     │  │
-                      │  └────────────────┘  │
-                      │  ┌────────────────┐  │
-                      │  │ Protocol       │  │  ← 5개 어댑터
-                      │  │ Adapter Layer  │  │
-                      │  └────────────────┘  │
-                      └──────────────────────┘
-```
+- 국내 VASP는 CODE 호환으로 연결
+- 해외 VASP는 GTR, Sumsub, Direct rail로 연결
+- 금융기관은 mTLS, VPN, 전용선까지 포함한 금융 보안 채널로 연결
+- KYT 결과가 위험이면 PII를 보내기 전에 TR을 차단
 
-## 기술 스택
+## 현재 구현 기준
 
-| 영역 | 기술 |
-|------|------|
-| Backend | Supabase (PostgreSQL + Edge Functions) |
-| Language | TypeScript / Deno (Edge Functions) |
-| Crypto | NaCl Box (X25519 + XSalsa20-Poly1305), Ed25519 |
-| Standard | IVMS101 (FATF Travel Rule) |
-| Protocol | CODE VASP / Sumsub / Direct / VerifyVASP |
-| Docs | VitePress (한국어/영어) |
+- 런타임: Supabase Edge Functions + PostgreSQL
+- 주요 엔드포인트: `health`, `vasp-registry`, `transfer-auth`, `transfer-response`
+- 핵심 어댑터: `code`, `sumsub`, `gtr`, `transight`, `direct`
+- 준비 중 어댑터: `verifyvasp`
+- 메시지 표준: IVMS101
+- 암호화/서명: NaCl Box, Ed25519
 
-## API 엔드포인트
+## 시스템 구조
 
-### Edge Functions (4개)
-
-| Function | 엔드포인트 | 역할 |
-|----------|-----------|------|
-| `health` | `GET /health` | 시스템 상태 + DB 연결 확인 |
-| `vasp-registry` | `GET/POST/PUT/DELETE /vasp-registry` | VASP 레지스트리 CRUD |
-| `transfer-auth` | `POST /transfer-auth` | 출금 TR 인가 (KYT → Protocol Adapter) |
-| `transfer-response` | `POST /transfer-response` | 수신 VASP 응답 처리 |
-
-### 주요 경로
-
-```
-# VASP Discovery
-GET  /vasp-registry                          # VASP 목록 (필터: ?alliance=code)
-GET  /vasp-registry?id={vaspEntityId}        # VASP 조회
-POST /vasp-registry                          # VASP 등록
-POST /vasp-registry/address-verify           # 지갑 주소 검증
-POST /vasp-registry/rotate-key               # 키 로테이션
-
-# Transfer Authorization (송신측)
-POST /transfer-auth                          # 출금 TR 인가
-POST /transfer-auth/incoming                 # 입금 TR 수신
-POST /transfer-auth/result                   # TXID 보고
-POST /transfer-auth/finish                   # 전송 취소
-GET  /transfer-auth?id={transferId}          # 상태 조회
-
-# Transfer Response (수신측)
-GET  /transfer-response/pending              # 확인 대기 목록
-POST /transfer-response/confirm              # 수신인 확인 (MATCHED)
-POST /transfer-response/deny                 # 수신인 거부
-POST /transfer-response/beneficiary          # 2차 IVMS101 제공
-POST /transfer-response/webhook              # 외부 콜백 (Sumsub/CODE)
+```text
+VASP / Bank / Fintech
+        |
+        v
+TranSight TR Hub
+  - health
+  - vasp-registry
+  - transfer-auth
+  - transfer-response
+        |
+        +-- Atomic KYT Gate
+        +-- Protocol Adapter Layer
+        +-- Transfer Status Machine
+        +-- Audit / TTL Queue / Registry
 ```
 
-## Protocol Adapter (비대칭 브릿지)
+## 주요 처리 흐름
 
-| 어댑터 | alliance | 커버리지 |
-|--------|----------|----------|
-| CODE VASP | `code` | 한국 거래소 (업비트, 빗썸, 코인원...) |
-| Sumsub | `sumsub` | 글로벌 (Binance, Coinbase, Bybit...) |
-| TranSight | `transight` | 내부 네트워크 |
-| Direct | `direct` | 개별 HTTPS/mTLS/VPN/전용선 |
-| VerifyVASP | `verifyvasp` | 한국 일부 (예정) |
+### 1. 출금 TR 인가
+
+1. 송신 기관이 `POST /transfer-auth` 호출
+2. Hub가 KYT 수행
+3. `BLOCK`이면 PII 미전송 상태로 즉시 종료
+4. `PASS/WARN`이면 beneficiary VASP의 `alliance_name`에 따라 어댑터 선택
+5. 외부 VASP 또는 금융기관으로 1차 TR 전달
+6. 검증 결과를 `verified` 또는 `denied`로 반환
+
+### 2. 온체인 후속 처리
+
+1. 송신 기관이 `POST /transfer-auth/result`로 TXID 보고
+2. 상태 머신이 `pending -> processing -> wait-confirmed -> confirmed`로 진행
+3. 필요 시 취소 또는 TTL Queue 매칭 처리
+
+### 3. 수신 응답 처리
+
+1. 외부 솔루션 또는 내부 beneficiary가 `transfer-response` 계열 API 호출
+2. 수신인 확인, 거부, beneficiary 추가 정보, webhook을 처리
+3. 송신측 또는 외부 네트워크에 맞는 프로토콜로 다시 전달
+
+## 지원 네트워크 / 레일
+
+| 구분 | 현재 상태 | 설명 |
+|------|-----------|------|
+| `code` | 구현 | 국내 거래소 대상 CODE 호환 |
+| `sumsub` | 구현 | 글로벌 TRUST bootstrap rail |
+| `gtr` | 구현 | 해외 VASP PII verification rail |
+| `transight` | 구현 | 내부 네트워크 |
+| `direct` | 구현 | 개별 HTTPS/mTLS/VPN/전용선 연결 |
+| `verifyvasp` | 준비 중 | 추후 별도 구현 예정 |
+
+## 핵심 코드 위치
+
+- `supabase/functions/transfer-auth/index.ts`: KYT + 라우팅 중심의 핵심 진입점
+- `supabase/functions/transfer-response/index.ts`: 수신측 응답 처리
+- `supabase/functions/vasp-registry/index.ts`: VASP 등록, 조회, 키 로테이션, 주소 검증
+- `supabase/functions/_shared/protocol-adapter.ts`: 어댑터 선택 및 외부 프로토콜 브릿지
+- `supabase/functions/_shared/kyt-gate.ts`: Atomic KYT 처리
+- `src/types/transfer.ts`: 상태 머신 정의
+- `src/services/transfer-service.ts`: Transfer CRUD, 상태 전이, TTL Queue
+
+## 문서 우선순위
+
+루트와 `docs/`에서 먼저 읽어야 할 문서:
+
+1. `docs/TRANSIGHT_PROJECT_CONTEXT.md`
+2. `docs/ttr-api-specification.md`
+3. `docs/ko/index.md`
+4. `docs/ko/guide/architecture.md`
+5. `docs/ko/guide/kyt-gate.md`
+6. `docs/ko/api/gtr-adapter.md`
+7. `README.md`
 
 ## 시작하기
 
 ```bash
-# 1. 클론 + 의존성 설치
-git clone git@github.com:alvintracer/transight-tr.git
-cd transight-tr && npm install
-
-# 2. 환경변수 설정
-cp .env.example .env
-# .env 파일 편집 (Supabase 키, KYT 설정 등)
-
-# 3. Supabase Cloud 연결
-npx supabase link --project-ref <your-project-ref>
-
-# 4. DB 마이그레이션
+npm install
+npx supabase link --project-ref <project-ref>
 npx supabase db push
-
-# 5. Seed 데이터
 npx supabase db query --linked -f supabase/seed.sql
-
-# 6. Edge Functions 배포
-npx supabase functions deploy health --project-ref <ref>
-npx supabase functions deploy vasp-registry --project-ref <ref>
-npx supabase functions deploy transfer-auth --project-ref <ref>
-npx supabase functions deploy transfer-response --project-ref <ref>
-
-# 7. API 문서 실행
+npx supabase functions deploy health
+npx supabase functions deploy vasp-registry
+npx supabase functions deploy transfer-auth
+npx supabase functions deploy transfer-response
 npm run docs:dev
-
-# 8. E2E 테스트
-node scripts/e2e-test.mjs
 ```
 
-## 프로젝트 구조
+## 참고
 
-```
-transight-tr/
-├── src/                          # 공유 TypeScript 소스
-│   ├── types/                    # IVMS101, CODE API, Transfer 타입
-│   ├── utils/                    # NaCl 암호화, Ed25519 서명, IVMS101 검증
-│   ├── services/                 # Transfer, Audit, TTL Queue 서비스
-│   └── constants/                # 상태 enum, 에러 코드
-├── supabase/
-│   ├── migrations/               # DB 스키마 (vasps, transfers, public_keys...)
-│   ├── seed.sql                  # 초기 데이터 (테스트 VASP)
-│   └── functions/                # Edge Functions (Deno)
-│       ├── _shared/              # 공유 모듈
-│       │   ├── cors.ts           # CORS
-│       │   ├── supabase-client.ts # DB 클라이언트
-│       │   ├── protocol-adapter.ts # 비대칭 브릿지 (5 adapters)
-│       │   ├── kyt-gate.ts       # KYT Atomic Gate
-│       │   └── security.ts      # 보안 미들웨어
-│       ├── health/               # 헬스체크
-│       ├── vasp-registry/        # VASP Discovery
-│       ├── transfer-auth/        # Transfer Authorization
-│       └── transfer-response/    # Beneficiary Response
-├── scripts/
-│   └── e2e-test.mjs             # E2E 테스트 스위트
-├── docs/                         # VitePress 문서 사이트
-│   ├── ko/                       # 한국어
-│   ├── en/                       # English
-│   └── migrate.md                # 환경 구축 가이드
-├── reference/                    # CODE VASP 참조 레포
-├── .env.example                  # 환경변수 템플릿
-└── package.json
-```
-
-## 문서
-
-- **API Docs**: `npm run docs:dev` (VitePress, 한국어/영어)
-- **마이그레이션 가이드**: `docs/migrate.md`
-- **Sumsub 연동 가이드**: `docs/sumsub-adapter-guide.md`
-- **프로젝트 컨텍스트**: `docs/TRANSIGHT_PROJECT_CONTEXT.md`
-
-## 라이선스
-
-Confidential — © 2026 Bonanza Factory Co., Ltd.
+- 프로젝트 컨텍스트: `docs/TRANSIGHT_PROJECT_CONTEXT.md`
+- 최신 API 기준: `docs/ttr-api-specification.md`
+- 한국어 문서 홈: `docs/ko/index.md`
+- 내부 ContextHub: `index.md`

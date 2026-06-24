@@ -42,3 +42,23 @@
 | `IVMS101_INVALID_PAYLOAD` | 잘못된 payload 형식 |
 | `IVMS101_DECRYPTION_FAILED` | 복호화 실패 |
 | `IVMS101_VALIDATION_FAILED` | 스키마 검증 실패 |
+
+### VASP (HTTP 400/404)
+| 코드 | 설명 |
+|------|------|
+| `VASP_NOT_FOUND` | 수신 VASP를 찾을 수 없음 |
+| `VASP_HEALTH_DOWN` | 수신 VASP 상태 비정상 |
+| `VASP_KEY_EXPIRED` | 수신 VASP 공개키 만료 |
+
+### 채널 (HTTP 502/504)
+| 코드 | 설명 |
+|------|------|
+| `CHANNEL_ROUTING_FAILED` | 프로토콜 어댑터 라우팅 실패 |
+| `CHANNEL_TIMEOUT` | 수신 VASP/프로바이더 응답 시간 초과 |
+
+### GTR (HTTP 502)
+| 코드 | 설명 |
+|------|------|
+| `GTR_NOT_CONFIGURED` | GTR API Key 미설정 |
+| `GTR_SERVICE_ERROR` | GTR API 오류 |
+| `GTR_FIELD_NOT_SUPPORTED` | 상대 VASP가 요청 PII 필드를 지원하지 않음 |

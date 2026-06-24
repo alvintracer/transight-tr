@@ -39,6 +39,16 @@ export interface KytCheckResult {
   riskCategory?: string;
   /** 위험 라벨 (예: "darknet", "mixer", "sanctioned") */
   riskLabels?: string[];
+  /** RA 모델 코드 — ra_code1 (상위 분류: BL, HRA 등) */
+  raCode1?: string;
+  /** RA 모델 코드 — ra_code2 (위험/특성 유형: OIS, DIS, RW 등) */
+  raCode2?: string;
+  /** RA 모델 코드 — ra_code3 (개별 주체명: Lazarus 등) */
+  raCode3?: string;
+  /** risk_analysis_type: Direct 또는 Tracked */
+  riskAnalysisType?: string;
+  /** 추적 홉 수 (0=직접, 1~3=추적) */
+  hopCount?: number;
   /** 차단 사유 메시지 */
   blockReason?: string;
   /** KYT 검사 수행 시각 */
@@ -47,6 +57,18 @@ export interface KytCheckResult {
   provider: string;
   /** 원본 API 응답 (감사용) */
   rawResponse?: Record<string, unknown>;
+}
+
+/** VASP별 KYT 설정 (vasps 테이블에서 조회) */
+export interface VaspKytConfig {
+  /** KYT 운영 모드: none(TR만) / kyt_only(KYT만) / atomic(KYT+TR 통합) */
+  kytMode: 'none' | 'kyt_only' | 'atomic';
+  /** KYT 적용 범위: tr_only(TR 대상만) / all(전체) */
+  kytScope: 'tr_only' | 'all';
+  /** 자동 차단: true면 등록된 ra_code2 매칭 시 자동 BLOCK */
+  kytAutoBlock: boolean;
+  /** SAR 리턴: true면 차단 시 상세 RA 정보 포함 */
+  kytReturnForSar: boolean;
 }
 
 // ============================================================
@@ -200,14 +222,21 @@ export async function checkKyt(request: KytCheckRequest): Promise<KytCheckResult
     const riskLabels = (data.riskLabels as string[]) ?? (data.labels as string[]) ?? [];
     const isBlacklisted = (data.isBlacklisted as boolean) ?? (data.blacklisted as boolean) ?? false;
 
-    // 결정 로직
+    // RA 모델 코드 추출 (TranSight KYT v1.3.3+)
+    const raCode1 = (data.ra_code1 as string) ?? (data.raCode1 as string);
+    const raCode2 = (data.ra_code2 as string) ?? (data.raCode2 as string);
+    const raCode3 = (data.ra_code3 as string) ?? (data.raCode3 as string);
+    const riskAnalysisType = (data.risk_analysis_type as string) ?? (data.riskAnalysisType as string);
+    const hopCount = (data.hop_count as number) ?? (data.hopCount as number);
+
+    // 결정 로직 (기본: riskScore 기반)
     let decision: 'PASS' | 'BLOCK' | 'WARN';
     let blockReason: string | undefined;
 
     if (isBlacklisted || riskScore >= config.blockThreshold) {
       decision = 'BLOCK';
       blockReason = isBlacklisted
-        ? `Address is blacklisted: ${riskLabels.join(', ') || riskCategory || 'unknown'}`
+        ? `Address is blacklisted: ${raCode2 || riskLabels.join(', ') || riskCategory || 'unknown'}`
         : `Risk score ${riskScore} exceeds block threshold ${config.blockThreshold}`;
     } else if (riskScore >= config.warnThreshold) {
       decision = 'WARN';
@@ -215,13 +244,18 @@ export async function checkKyt(request: KytCheckRequest): Promise<KytCheckResult
       decision = 'PASS';
     }
 
-    console.log(`[KYT Gate] ${request.address} → ${decision} (score: ${riskScore}, labels: ${riskLabels.join(',')})`);
+    console.log(`[KYT Gate] ${request.address} → ${decision} (score: ${riskScore}, ra_code2: ${raCode2 ?? 'N/A'}, labels: ${riskLabels.join(',')})`);
 
     return {
       decision,
       riskScore,
       riskCategory,
       riskLabels: riskLabels.length > 0 ? riskLabels : undefined,
+      raCode1,
+      raCode2,
+      raCode3,
+      riskAnalysisType,
+      hopCount,
       blockReason,
       checkedAt,
       provider: 'transight-kyt',
@@ -257,23 +291,82 @@ export interface AtomicGateResult {
   kytResult: KytCheckResult;
   /** 차단 시 사유 */
   blockReason?: string;
+  /** ra_code2 매칭으로 인한 차단인지 */
+  blockedByRegistry?: boolean;
+  /** 매칭된 차단 레지스트리 항목 */
+  matchedRegistryEntry?: { ra_code2: string; description?: string };
+}
+
+/** Block Registry 항목 */
+interface BlockRegistryEntry {
+  ra_code2: string;
+  risk_analysis_type: string | null;
+  max_hop_count: number | null;
+  description: string | null;
+  is_active: boolean;
 }
 
 /**
- * Atomic Gate — KYT 검사 후 TR 진행/차단 결정
+ * Atomic Gate — VASP 설정 기반 KYT + TR 통합 결정
  * 
- * BLOCK → PII 절대 미전송, transfer denied 처리
- * WARN  → 경고 로그 남기고 TR 진행 (규정 준수)
- * PASS  → TR 정상 진행
+ * kyt_mode:
+ *   'none'     → KYT 스킵, TR만 진행
+ *   'kyt_only' → KYT만 수행 (TR과 별개)
+ *   'atomic'   → KYT 결과에 따라 TR 차단/진행
+ * 
+ * kyt_auto_block:
+ *   true  → 등록된 ra_code2 매칭 시 자동 차단 (PII 미전송)
+ *   false → KYT 결과만 리턴, TR은 그냥 진행
  * 
  * @param request KYT 검사 요청
+ * @param vaspConfig VASP별 KYT 설정 (없으면 기본값)
+ * @param blockRegistry VASP의 차단 대상 ra_code2 목록 (DB에서 조회)
  * @returns 최종 결정 + KYT 상세 결과
  */
-export async function atomicGate(request: KytCheckRequest): Promise<AtomicGateResult> {
+export async function atomicGate(
+  request: KytCheckRequest,
+  vaspConfig?: VaspKytConfig,
+  blockRegistry?: BlockRegistryEntry[],
+): Promise<AtomicGateResult> {
+  // 기본 설정 (하위 호환: config 없으면 기존 동작)
+  const config: VaspKytConfig = vaspConfig ?? {
+    kytMode: 'atomic',
+    kytScope: 'tr_only',
+    kytAutoBlock: true,
+    kytReturnForSar: false,
+  };
+
+  // kyt_mode === 'none' → KYT 스킵, TR만 진행
+  if (config.kytMode === 'none') {
+    console.log(`[Atomic Gate] KYT disabled for this VASP — proceeding without KYT`);
+    return {
+      finalDecision: 'proceed',
+      kytResult: {
+        decision: 'PASS',
+        riskScore: 0,
+        checkedAt: new Date().toISOString(),
+        provider: 'transight-kyt-disabled',
+      },
+    };
+  }
+
+  // KYT API 호출
   const kytResult = await checkKyt(request);
 
+  // kyt_auto_block === false → KYT 결과만 리턴, TR은 그냥 진행
+  if (!config.kytAutoBlock) {
+    console.log(`[Atomic Gate] auto_block OFF — returning KYT result only (ra_code2: ${kytResult.raCode2 ?? 'N/A'}, score: ${kytResult.riskScore})`);
+    return {
+      finalDecision: 'proceed',
+      kytResult,
+    };
+  }
+
+  // === 자동 차단 로직 (kyt_auto_block === true) ===
+
+  // 1. 기존 riskScore 기반 차단 (기본 임계값)
   if (kytResult.decision === 'BLOCK') {
-    console.warn(`[Atomic Gate] ⛔ BLOCKED: ${request.address} — ${kytResult.blockReason}`);
+    console.warn(`[Atomic Gate] ⛔ BLOCKED by riskScore: ${request.address} — ${kytResult.blockReason}`);
     return {
       finalDecision: 'block',
       kytResult,
@@ -281,8 +374,49 @@ export async function atomicGate(request: KytCheckRequest): Promise<AtomicGateRe
     };
   }
 
+  // 2. ra_code2 기반 차단 (Block Registry 매칭)
+  if (kytResult.raCode2 && blockRegistry && blockRegistry.length > 0) {
+    const matchedEntry = blockRegistry.find(entry => {
+      if (!entry.is_active) return false;
+      if (entry.ra_code2 !== kytResult.raCode2) return false;
+
+      // risk_analysis_type 필터 (NULL이면 모든 유형에 적용)
+      if (entry.risk_analysis_type && kytResult.riskAnalysisType) {
+        if (entry.risk_analysis_type !== kytResult.riskAnalysisType) return false;
+      }
+
+      // max_hop_count 필터 (NULL이면 모든 홉에 적용)
+      if (entry.max_hop_count != null && kytResult.hopCount != null) {
+        if (kytResult.hopCount > entry.max_hop_count) return false;
+      }
+
+      return true;
+    });
+
+    if (matchedEntry) {
+      const reason = `Blocked by ra_code2 registry: ${kytResult.raCode2}` +
+        (kytResult.raCode3 ? ` (${kytResult.raCode3})` : '') +
+        (kytResult.riskAnalysisType ? `, ${kytResult.riskAnalysisType}` : '') +
+        (kytResult.hopCount != null ? `, hop ${kytResult.hopCount}` : '');
+
+      console.warn(`[Atomic Gate] ⛔ BLOCKED by registry: ${request.address} — ${reason}`);
+
+      return {
+        finalDecision: 'block',
+        kytResult: { ...kytResult, decision: 'BLOCK', blockReason: reason },
+        blockReason: reason,
+        blockedByRegistry: true,
+        matchedRegistryEntry: {
+          ra_code2: matchedEntry.ra_code2,
+          description: matchedEntry.description ?? undefined,
+        },
+      };
+    }
+  }
+
+  // 3. WARN은 로그만 남기고 진행
   if (kytResult.decision === 'WARN') {
-    console.warn(`[Atomic Gate] ⚠️ WARNING: ${request.address} — score ${kytResult.riskScore}`);
+    console.warn(`[Atomic Gate] ⚠️ WARNING: ${request.address} — ra_code2: ${kytResult.raCode2 ?? 'N/A'}, score: ${kytResult.riskScore}`);
   }
 
   return {

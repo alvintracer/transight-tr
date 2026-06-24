@@ -22,7 +22,7 @@ import { createServiceClient } from '../_shared/supabase-client.ts';
 import { routeTransfer, routeTransferResult, routeTransferFinish } from '../_shared/protocol-adapter.ts';
 import type { VaspTarget, AdapterTransferRequest } from '../_shared/protocol-adapter.ts';
 import { atomicGate } from '../_shared/kyt-gate.ts';
-import type { KytCheckResult } from '../_shared/kyt-gate.ts';
+import type { KytCheckResult, VaspKytConfig } from '../_shared/kyt-gate.ts';
 
 // ============================================================
 // Helper: URL 경로 파싱
@@ -160,6 +160,7 @@ async function handleOutgoingTransfer(
     network,
     beneficiaryVaspEntityId,
     originatorVaspEntityId,
+    adapterOptions,
   } = body;
 
   // 1. 필수 필드 검증
@@ -211,15 +212,49 @@ async function handleOutgoingTransfer(
     beneficiaryVasp = benVasp;
   }
 
-  // 5. KYT Gate (Atomic) — TranSight 내부 KYT API 호출
-  const gateResult = await atomicGate({
-    address: (address as string) ?? '',
-    currency: currency as string,
-    amount: amount as string,
-    beneficiaryVaspEntityId: beneficiaryVaspEntityId as string | undefined,
-    network: network as string | undefined,
-    transferId: transferId as string,
-  });
+  // 5. 송신 VASP의 KYT 설정 조회
+  let vaspKytConfig: VaspKytConfig | undefined;
+  if (originatorVaspId) {
+    const { data: origVaspConfig } = await supabase
+      .from('vasps')
+      .select('kyt_mode, kyt_scope, kyt_auto_block, kyt_return_for_sar')
+      .eq('id', originatorVaspId)
+      .single();
+
+    if (origVaspConfig) {
+      vaspKytConfig = {
+        kytMode: origVaspConfig.kyt_mode as 'none' | 'kyt_only' | 'atomic',
+        kytScope: origVaspConfig.kyt_scope as 'tr_only' | 'all',
+        kytAutoBlock: origVaspConfig.kyt_auto_block as boolean,
+        kytReturnForSar: origVaspConfig.kyt_return_for_sar as boolean,
+      };
+    }
+  }
+
+  // 6. Block Registry 조회 (kyt_auto_block이 true일 때만)
+  let blockRegistry: Array<{ ra_code2: string; risk_analysis_type: string | null; max_hop_count: number | null; description: string | null; is_active: boolean }> = [];
+  if (vaspKytConfig?.kytAutoBlock && originatorVaspId) {
+    const { data: registryData } = await supabase
+      .from('kyt_tr_block_registry')
+      .select('ra_code2, risk_analysis_type, max_hop_count, description, is_active')
+      .eq('vasp_id', originatorVaspId)
+      .eq('is_active', true);
+    blockRegistry = registryData ?? [];
+  }
+
+  // 7. KYT Gate (Atomic) — VASP 설정 기반
+  const gateResult = await atomicGate(
+    {
+      address: (address as string) ?? '',
+      currency: currency as string,
+      amount: amount as string,
+      beneficiaryVaspEntityId: beneficiaryVaspEntityId as string | undefined,
+      network: network as string | undefined,
+      transferId: transferId as string,
+    },
+    vaspKytConfig,
+    blockRegistry,
+  );
 
   const kytResult: KytCheckResult = gateResult.kytResult;
 
@@ -341,11 +376,17 @@ async function handleOutgoingTransfer(
       tag: tag as string | undefined,
       network: network as string | undefined,
       originatorVaspEntityId: originatorVaspEntityId as string | undefined,
+      adapterOptions: adapterOptions as { gtr?: Record<string, unknown> } | undefined,
     };
 
     const adapterResponse = await routeTransfer(target, adapterRequest, hubPrivateKey, hubVaspEntityId);
 
-    transferResult = adapterResponse.result === 'pending' ? 'verified' : adapterResponse.result;
+    // GTR 'pending'은 verified로 변환하지 않고 그대로 유지
+    if (adapterResponse.protocol === 'gtr' && adapterResponse.result === 'pending') {
+      transferResult = 'denied';  // 금융기관 정책: 검증 미완료 시 denied 처리
+    } else {
+      transferResult = adapterResponse.result === 'pending' ? 'verified' : adapterResponse.result;
+    }
     responsePayload = adapterResponse.payload ?? '';
     reasonType = adapterResponse.reasonType ?? '';
     reasonMsg = adapterResponse.reasonMsg ?? '';

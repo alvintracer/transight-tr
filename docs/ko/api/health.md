@@ -12,7 +12,7 @@ GET /health
 
 | 헤더 | 값 |
 |------|-----|
-| `Authorization` | `Bearer <ANON_KEY>` |
+| `Authorization` | `Bearer <API_KEY>` |
 
 ## 응답
 
@@ -57,14 +57,14 @@ GET /health
 ::: code-group
 
 ```bash [cURL]
-curl -H "Authorization: Bearer YOUR_ANON_KEY" \
-  https://your-project.supabase.co/functions/v1/health
+curl -H "Authorization: Bearer YOUR_API_KEY" \
+  https://api.transight.io/v1/health
 ```
 
 ```typescript [TypeScript]
 const res = await fetch(
-  'https://your-project.supabase.co/functions/v1/health',
-  { headers: { Authorization: `Bearer ${ANON_KEY}` } }
+  'https://api.transight.io/v1/health',
+  { headers: { Authorization: `Bearer ${API_KEY}` } }
 );
 const data = await res.json();
 console.log(data.status); // "up"
@@ -74,8 +74,8 @@ console.log(data.status); // "up"
 import requests
 
 res = requests.get(
-    "https://your-project.supabase.co/functions/v1/health",
-    headers={"Authorization": f"Bearer {ANON_KEY}"}
+    "https://api.transight.io/v1/health",
+    headers={"Authorization": f"Bearer {API_KEY}"}
 )
 print(res.json()["status"])  # "up"
 ```

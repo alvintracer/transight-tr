@@ -10,12 +10,15 @@ While existing TR solutions only allow communication between VASPs using the sam
 
 ### 1. Asymmetric Bridge
 
-| Target | Channel | Security Level |
-|--------|---------|---------------|
-| Crypto Exchanges | HTTPS + OAuth 2.0 | TLS 1.3 + AES-256 |
-| Digital Banks | mTLS + OAuth 2.0 | Mutual Certificate Verification |
-| Traditional Banks | IPSec VPN | Encrypted Tunnel |
-| Legacy Banks | Leased Line | Physical Isolation |
+Security compliance requirements vary across different financial institutions. Rather than forcing a single rigid protocol, TranSight TR provides tailored connection options based on the preferred security channel of each financial institution.
+
+| Target | Security Channel Options | Security Level & Features |
+|--------|--------------------------|---------------------------|
+| Crypto Exchanges | HTTPS + OAuth 2.0 | TLS 1.3 + Standardized AES-256 encrypted communication |
+| Financial Institutions | mTLS / IPSec VPN / Leased Line | Mutual certificate verification, encrypted tunnels, and physical isolation |
+
+* **Customized Security Channels**: Seamlessly establish and integrate optimal security channel options—such as `mTLS + OAuth 2.0`, `IPSec VPN`, or `Leased Line`—aligned with the internal security standards of each financial institution.
+* **Leased Line Integration**: For financial institutions that have already established dedicated private lines, TranSight TR fully supports integration using their existing private leased line infrastructure.
 
 ### 2. Atomic KYT Gate
 
@@ -28,11 +31,12 @@ Personal information (PII) is **never transmitted** before the KYT (Know Your Tr
 
 ### 3. Cross-Solution Compatibility
 
-TranSight TR interoperates at the protocol level with:
+TranSight TR guarantees full protocol-level interoperability with the following major domestic and global Travel Rule alliances:
 
-- **CODE VASP** — NaCl Box encryption + Ed25519 signatures
-- **VerifyVASP** — OpenVASP-based
-- **International VASPs** — Direct integration (Bybit, Bitget, etc.)
+- **CODE VASP** — Domestic exchange interoperability via NaCl Box encryption and Ed25519 signatures
+- **Sumsub Hub** — Global compliance and TRUST (Travel Rule Universal Solution Technology) alliance compatibility via HMAC-SHA256 signatures
+- **VerifyVASP** — OpenVASP protocol-based integration support
+- **International VASPs** — Direct integration and custom protocol translation (Bybit, Bitget, etc.)
 
 ## Core Technology Stack
 
@@ -42,7 +46,7 @@ TranSight TR interoperates at the protocol level with:
 | Signatures | Ed25519 |
 | Message Format | IVMS101 (FATF Standard) |
 | State Management | 8-stage State Machine |
-| Backend | Supabase (PostgreSQL + Edge Functions) |
+| Backend | Cloud Native Serverless (PostgreSQL + API Hub) |
 | Runtime | TypeScript (Deno / Node.js) |
 
 ## Next Steps

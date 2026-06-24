@@ -26,6 +26,7 @@ export enum AllianceName {
   TRANSIGHT = 'transight',
   SUMSUB = 'sumsub',
   DIRECT = 'direct',  // 직접 연동 (Bybit, Bitget 등)
+  GTR = 'gtr',        // Global Travel Rule (Binance, OKX, Bybit 등)
 }
 
 // ============================================================

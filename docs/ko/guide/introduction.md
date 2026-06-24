@@ -10,12 +10,15 @@
 
 ### 1. 비대칭 브릿지
 
-| 연결 대상 | 채널 | 보안 수준 |
-|-----------|------|-----------|
-| 가상자산 거래소 | HTTPS + OAuth 2.0 | TLS 1.3 + AES-256 |
-| 인터넷전문은행 | mTLS + OAuth 2.0 | 상호 인증서 검증 |
-| 보수적 은행 | IPSec VPN | 암호화 터널 |
-| 기구축 은행 | 전용선 (Leased Line) | 물리적 격리 |
+금융기관마다 선호하거나 요구하는 보안 컴플라이언스 기준이 각기 다릅니다. TranSight TR은 하나의 고정된 프로토콜을 강요하지 않고, 각 금융기관이 선호하는 보안 채널 방식에 맞추어 맞춤형 연결을 제공합니다.
+
+| 대상 기관 | 지원 보안 채널 옵션 | 보안 수준 및 특징 |
+|-----------|--------------------|-------------------|
+| 가상자산 거래소 | HTTPS + OAuth 2.0 | TLS 1.3 + 표준화된 AES-256 암호화 통신 |
+| 금융기관 | mTLS / IPSec VPN / 전용선 (Leased Line) | 상호 인증서 검증, 전용 암호화 터널, 물리적 격리 지원 |
+
+* **맞춤형 보안 채널 지원**: 금융기관의 자체 규정에 따라 `mTLS + OAuth 2.0`, `IPSec VPN` 또는 `전용선 (Leased Line)` 중 최적의 옵션을 선택적으로 구축 및 연동할 수 있습니다.
+* **전용선 연동**: 기존에 전용망/전용선을 구축한 금융기관의 경우, 기존 설비를 그대로 활용한 전용선 연결 역시 완벽하게 지원합니다.
 
 ### 2. Atomic KYT Gate
 
@@ -28,11 +31,12 @@ KYT(Know Your Transaction) 결과가 나오기 **전에** 개인정보(PII)가 �
 
 ### 3. 크로스 솔루션 호환
 
-TranSight TR은 다음 얼라이언스와 프로토콜 레벨에서 상호운용됩니다:
+TranSight TR은 다음 얼라이언스 및 글로벌 컴플라이언스 솔루션과 프로토콜 레벨에서 완전한 상호운용성을 보장합니다:
 
-- **CODE VASP** — NaCl Box 암호화 + Ed25519 서명
-- **VerifyVASP** — OpenVASP 기반
-- **해외 VASP** — 직접 연동 (Bybit, Bitget 등)
+- **CODE VASP** — NaCl Box 암호화 + Ed25519 서명 기반 국내 거래소 호환
+- **Sumsub Hub** — HMAC-SHA256 서명 기반 글로벌 컴플라이언스 및 TRUST(Travel Rule Universal Solution Technology) 얼라이언스 호환
+- **VerifyVASP** — OpenVASP 프로토콜 호환 기반 연결 지원
+- **해외 VASP** — 직접 연동 및 커스텀 프로토콜 중개 (Bybit, Bitget 등)
 
 ## 핵심 기술 스택
 
@@ -42,7 +46,7 @@ TranSight TR은 다음 얼라이언스와 프로토콜 레벨에서 상호운용
 | 서명 | Ed25519 |
 | 메시지 포맷 | IVMS101 (FATF 표준) |
 | 상태 관리 | 8단계 상태 머신 |
-| 백엔드 | Supabase (PostgreSQL + Edge Functions) |
+| 백엔드 | Cloud Native Serverless (PostgreSQL + API Hub) |
 | 런타임 | TypeScript (Deno / Node.js) |
 
 ## 다음 단계

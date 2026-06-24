@@ -10,6 +10,11 @@ build/
 .env.local
 .env.*.local
 
+# Sensitive workspace areas
+AI-Sessions/raw-private/
+AI-Sessions/restricted/
+secrets/
+
 # Supabase
 supabase/.temp/
 supabase/.branches/
