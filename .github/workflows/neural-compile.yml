@@ -1,0 +1,56 @@
+name: Neural Compile
+
+# 위키(마크다운) push 시 지식그래프(.cotext/neural.json + NEURAL_INDEX.md)를
+# 자동으로 재컴파일·커밋한다. 그래프 = 파생물, 이 워크플로가 단일 작성자.
+# 트리거 경로에 .cotext/** 없음 → 봇 커밋이 자기 자신을 재트리거하지 않음.
+#
+# Self-contained: cotext 컴파일러를 cotext-app 레포에서 받아 빌드해 사용한다.
+# (cotext npm 패키지가 publish되면 'npx -y cotext compile' 한 줄로 단순화 가능)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'AI-Sessions/**'
+      - 'prompts/**'
+      - '*.md'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: neural-compile-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Fetch + build cotext compiler
+        run: |
+          set -e
+          git clone --depth 1 https://github.com/alvintracer/cotext-app.git /tmp/cotext-src
+          cd /tmp/cotext-src/packages/cotext-cli
+          npm install --no-audit --no-fund --silent
+          npm run build --silent
+
+      - name: Compile wiki → neural graph
+        run: node /tmp/cotext-src/packages/cotext-cli/dist/index.js compile --repo "${{ github.repository }}"
+
+      - name: Commit graph if changed
+        run: |
+          git config user.name  "cotext-neural-bot"
+          git config user.email "neural-bot@users.noreply.github.com"
+          if [ -n "$(git status --porcelain .cotext)" ]; then
+            git add .cotext/neural.json .cotext/NEURAL_INDEX.md
+            git commit -m "chore(neural): recompile knowledge graph [skip ci]"
+            git push
+          else
+            echo "Graph already up to date — nothing to commit."
+          fi
