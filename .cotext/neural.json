@@ -1,0 +1,635 @@
+{
+  "version": 1,
+  "updatedAt": "2026-06-24T02:02:31.594Z",
+  "clusters": [
+    {
+      "id": "decision",
+      "name": "Decision",
+      "color": "#2563eb"
+    },
+    {
+      "id": "design",
+      "name": "Design",
+      "color": "#d97706"
+    },
+    {
+      "id": "dev-task",
+      "name": "Dev-task",
+      "color": "#0891b2"
+    },
+    {
+      "id": "project",
+      "name": "Project",
+      "color": "#16a34a"
+    },
+    {
+      "id": "source",
+      "name": "Source",
+      "color": "#dc2626"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "w-ai-sessions-wiki-decisions-2026-06-13-contexthub-governance",
+      "room": "AI-Sessions/wiki/decisions/2026-06-13-contexthub-governance.md",
+      "blockTs": "2026-06-13",
+      "label": "ContextHub Governance Baseline",
+      "clusters": [
+        "decision"
+      ],
+      "source": "wiki"
+    },
+    {
+      "id": "w-ai-sessions-wiki-decisions-2026-06-13-transight-runtime-baseline",
+      "room": "AI-Sessions/wiki/decisions/2026-06-13-transight-runtime-baseline.md",
+      "blockTs": "2026-06-13",
+      "label": "TranSight Runtime Baseline",
+      "clusters": [
+        "decision"
+      ],
+      "source": "wiki"
+    },
+    {
+      "id": "w-ai-sessions-wiki-decisions-2026-06-24-phase-7-implementation-baseline",
+      "room": "AI-Sessions/wiki/decisions/2026-06-24-phase-7-implementation-baseline.md",
+      "blockTs": "2026-06-24",
+      "label": "Phase 7 Implementation Baseline",
+      "clusters": [
+        "decision"
+      ],
+      "source": "wiki"
+    },
+    {
+      "id": "w-ai-sessions-wiki-design-agent-wiki-operating-model",
+      "room": "AI-Sessions/wiki/design/agent-wiki-operating-model.md",
+      "blockTs": "2026-06-13",
+      "label": "Agent Wiki Operating Model",
+      "clusters": [
+        "design"
+      ],
+      "source": "wiki"
+    },
+    {
+      "id": "w-ai-sessions-wiki-design-transight-tr-runtime-architecture",
+      "room": "AI-Sessions/wiki/design/transight-tr-runtime-architecture.md",
+      "blockTs": "2026-06-24",
+      "label": "TranSight TR Runtime Architecture",
+      "clusters": [
+        "design"
+      ],
+      "source": "wiki"
+    },
+    {
+      "id": "w-ai-sessions-wiki-dev-tasks-transight-tr-core-code-map",
+      "room": "AI-Sessions/wiki/dev-tasks/transight-tr-core-code-map.md",
+      "blockTs": "2026-06-24",
+      "label": "TranSight TR Core Code Map",
+      "clusters": [
+        "dev-task"
+      ],
+      "source": "wiki"
+    },
+    {
+      "id": "w-ai-sessions-wiki-projects-chatgpt-share-01-overview",
+      "room": "AI-Sessions/wiki/projects/chatgpt-share-01-overview.md",
+      "blockTs": "2026-06-13",
+      "label": "ChatGPT Share Pack 01 - Overview",
+      "clusters": [
+        "project"
+      ],
+      "source": "wiki"
+    },
+    {
+      "id": "w-ai-sessions-wiki-projects-chatgpt-share-02-structure",
+      "room": "AI-Sessions/wiki/projects/chatgpt-share-02-structure.md",
+      "blockTs": "2026-06-13",
+      "label": "ChatGPT Share Pack 02 - Structure",
+      "clusters": [
+        "project"
+      ],
+      "source": "wiki"
+    },
+    {
+      "id": "w-ai-sessions-wiki-projects-chatgpt-share-03-rules-and-prompts",
+      "room": "AI-Sessions/wiki/projects/chatgpt-share-03-rules-and-prompts.md",
+      "blockTs": "2026-06-13",
+      "label": "ChatGPT Share Pack 03 - Rules And Prompts",
+      "clusters": [
+        "project"
+      ],
+      "source": "wiki"
+    },
+    {
+      "id": "w-ai-sessions-wiki-projects-transight-contexthub-setup",
+      "room": "AI-Sessions/wiki/projects/transight-contexthub-setup.md",
+      "blockTs": "2026-06-13",
+      "label": "TranSight ContextHub Setup",
+      "clusters": [
+        "project"
+      ],
+      "source": "wiki"
+    },
+    {
+      "id": "w-ai-sessions-wiki-projects-transight-tr-current-overview",
+      "room": "AI-Sessions/wiki/projects/transight-tr-current-overview.md",
+      "blockTs": "2026-06-24",
+      "label": "TranSight TR Current Overview",
+      "clusters": [
+        "project"
+      ],
+      "source": "wiki"
+    },
+    {
+      "id": "w-ai-sessions-wiki-projects-transight-tr-june-2026-delivery-status",
+      "room": "AI-Sessions/wiki/projects/transight-tr-june-2026-delivery-status.md",
+      "blockTs": "2026-06-24",
+      "label": "TranSight TR June 2026 Delivery Status",
+      "clusters": [
+        "project"
+      ],
+      "source": "wiki"
+    },
+    {
+      "id": "w-ai-sessions-wiki-sources-2026-06-13-product-docs-and-code-baseline",
+      "room": "AI-Sessions/wiki/sources/2026-06-13-product-docs-and-code-baseline.md",
+      "blockTs": "2026-06-13",
+      "label": "Product Docs And Code Baseline",
+      "clusters": [
+        "source"
+      ],
+      "source": "wiki"
+    },
+    {
+      "id": "w-ai-sessions-wiki-sources-2026-06-24-runtime-and-ops-refresh",
+      "room": "AI-Sessions/wiki/sources/2026-06-24-runtime-and-ops-refresh.md",
+      "blockTs": "2026-06-24",
+      "label": "TranSight TR Runtime And Ops Refresh",
+      "clusters": [
+        "source"
+      ],
+      "source": "wiki"
+    },
+    {
+      "id": "w-stub-start-here",
+      "room": "(unresolved)",
+      "blockTs": "",
+      "label": "START_HERE",
+      "clusters": [],
+      "source": "wiki"
+    },
+    {
+      "id": "w-stub-agents",
+      "room": "(unresolved)",
+      "blockTs": "",
+      "label": "AGENTS",
+      "clusters": [],
+      "source": "wiki"
+    },
+    {
+      "id": "w-stub-claude",
+      "room": "(unresolved)",
+      "blockTs": "",
+      "label": "CLAUDE",
+      "clusters": [],
+      "source": "wiki"
+    },
+    {
+      "id": "w-stub-chatgpt",
+      "room": "(unresolved)",
+      "blockTs": "",
+      "label": "CHATGPT",
+      "clusters": [],
+      "source": "wiki"
+    },
+    {
+      "id": "w-stub-readme",
+      "room": "(unresolved)",
+      "blockTs": "",
+      "label": "README",
+      "clusters": [],
+      "source": "wiki"
+    },
+    {
+      "id": "w-stub-docs-dev-guide",
+      "room": "(unresolved)",
+      "blockTs": "",
+      "label": "docs/dev-guide",
+      "clusters": [],
+      "source": "wiki"
+    },
+    {
+      "id": "w-stub-template-manifest",
+      "room": "(unresolved)",
+      "blockTs": "",
+      "label": "TEMPLATE_MANIFEST",
+      "clusters": [],
+      "source": "wiki"
+    },
+    {
+      "id": "w-stub-index",
+      "room": "(unresolved)",
+      "blockTs": "",
+      "label": "index",
+      "clusters": [],
+      "source": "wiki"
+    },
+    {
+      "id": "w-stub-prompts-first-setup",
+      "room": "(unresolved)",
+      "blockTs": "",
+      "label": "prompts/first-setup",
+      "clusters": [],
+      "source": "wiki"
+    },
+    {
+      "id": "w-stub-prompts-save",
+      "room": "(unresolved)",
+      "blockTs": "",
+      "label": "prompts/save",
+      "clusters": [],
+      "source": "wiki"
+    },
+    {
+      "id": "w-stub-prompts-query",
+      "room": "(unresolved)",
+      "blockTs": "",
+      "label": "prompts/query",
+      "clusters": [],
+      "source": "wiki"
+    },
+    {
+      "id": "w-stub-prompts-ingest",
+      "room": "(unresolved)",
+      "blockTs": "",
+      "label": "prompts/ingest",
+      "clusters": [],
+      "source": "wiki"
+    },
+    {
+      "id": "w-stub-prompts-lint",
+      "room": "(unresolved)",
+      "blockTs": "",
+      "label": "prompts/lint",
+      "clusters": [],
+      "source": "wiki"
+    },
+    {
+      "id": "w-stub-docs-ko-internal-implementation-status",
+      "room": "(unresolved)",
+      "blockTs": "",
+      "label": "docs/ko/internal/implementation-status",
+      "clusters": [],
+      "source": "wiki"
+    }
+  ],
+  "edges": [
+    {
+      "from": "w-ai-sessions-wiki-decisions-2026-06-13-contexthub-governance",
+      "to": "w-stub-start-here",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-decisions-2026-06-13-contexthub-governance",
+      "to": "w-stub-agents",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-decisions-2026-06-13-contexthub-governance",
+      "to": "w-stub-claude",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-decisions-2026-06-13-contexthub-governance",
+      "to": "w-stub-chatgpt",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-decisions-2026-06-13-contexthub-governance",
+      "to": "w-ai-sessions-wiki-design-agent-wiki-operating-model",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-decisions-2026-06-13-contexthub-governance",
+      "to": "w-ai-sessions-wiki-projects-transight-contexthub-setup",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-decisions-2026-06-13-transight-runtime-baseline",
+      "to": "w-stub-readme",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-decisions-2026-06-13-transight-runtime-baseline",
+      "to": "w-stub-start-here",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-decisions-2026-06-13-transight-runtime-baseline",
+      "to": "w-ai-sessions-wiki-design-transight-tr-runtime-architecture",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-decisions-2026-06-13-transight-runtime-baseline",
+      "to": "w-ai-sessions-wiki-dev-tasks-transight-tr-core-code-map",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-decisions-2026-06-24-phase-7-implementation-baseline",
+      "to": "w-ai-sessions-wiki-projects-transight-tr-june-2026-delivery-status",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-decisions-2026-06-24-phase-7-implementation-baseline",
+      "to": "w-ai-sessions-wiki-dev-tasks-transight-tr-core-code-map",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-decisions-2026-06-24-phase-7-implementation-baseline",
+      "to": "w-stub-docs-dev-guide",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-design-agent-wiki-operating-model",
+      "to": "w-stub-start-here",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-design-agent-wiki-operating-model",
+      "to": "w-stub-agents",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-design-agent-wiki-operating-model",
+      "to": "w-stub-claude",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-design-agent-wiki-operating-model",
+      "to": "w-stub-chatgpt",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-design-agent-wiki-operating-model",
+      "to": "w-ai-sessions-wiki-projects-transight-contexthub-setup",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-design-transight-tr-runtime-architecture",
+      "to": "w-ai-sessions-wiki-sources-2026-06-24-runtime-and-ops-refresh",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-design-transight-tr-runtime-architecture",
+      "to": "w-ai-sessions-wiki-projects-transight-tr-june-2026-delivery-status",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-design-transight-tr-runtime-architecture",
+      "to": "w-ai-sessions-wiki-dev-tasks-transight-tr-core-code-map",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-design-transight-tr-runtime-architecture",
+      "to": "w-ai-sessions-wiki-decisions-2026-06-24-phase-7-implementation-baseline",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-dev-tasks-transight-tr-core-code-map",
+      "to": "w-ai-sessions-wiki-sources-2026-06-24-runtime-and-ops-refresh",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-dev-tasks-transight-tr-core-code-map",
+      "to": "w-ai-sessions-wiki-projects-transight-tr-june-2026-delivery-status",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-dev-tasks-transight-tr-core-code-map",
+      "to": "w-stub-docs-dev-guide",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-projects-chatgpt-share-01-overview",
+      "to": "w-stub-readme",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-projects-chatgpt-share-01-overview",
+      "to": "w-stub-start-here",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-projects-chatgpt-share-01-overview",
+      "to": "w-stub-template-manifest",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-projects-chatgpt-share-01-overview",
+      "to": "w-ai-sessions-wiki-projects-chatgpt-share-02-structure",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-projects-chatgpt-share-01-overview",
+      "to": "w-ai-sessions-wiki-projects-chatgpt-share-03-rules-and-prompts",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-projects-chatgpt-share-02-structure",
+      "to": "w-stub-index",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-projects-chatgpt-share-02-structure",
+      "to": "w-stub-readme",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-projects-chatgpt-share-02-structure",
+      "to": "w-stub-template-manifest",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-projects-chatgpt-share-02-structure",
+      "to": "w-ai-sessions-wiki-projects-chatgpt-share-03-rules-and-prompts",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-projects-chatgpt-share-03-rules-and-prompts",
+      "to": "w-stub-agents",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-projects-chatgpt-share-03-rules-and-prompts",
+      "to": "w-stub-claude",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-projects-chatgpt-share-03-rules-and-prompts",
+      "to": "w-stub-start-here",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-projects-chatgpt-share-03-rules-and-prompts",
+      "to": "w-stub-prompts-first-setup",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-projects-chatgpt-share-03-rules-and-prompts",
+      "to": "w-stub-prompts-save",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-projects-chatgpt-share-03-rules-and-prompts",
+      "to": "w-stub-prompts-query",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-projects-chatgpt-share-03-rules-and-prompts",
+      "to": "w-stub-prompts-ingest",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-projects-chatgpt-share-03-rules-and-prompts",
+      "to": "w-stub-prompts-lint",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-projects-transight-contexthub-setup",
+      "to": "w-stub-start-here",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-projects-transight-contexthub-setup",
+      "to": "w-stub-agents",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-projects-transight-contexthub-setup",
+      "to": "w-stub-claude",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-projects-transight-contexthub-setup",
+      "to": "w-stub-chatgpt",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-projects-transight-tr-current-overview",
+      "to": "w-ai-sessions-wiki-projects-transight-tr-june-2026-delivery-status",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-projects-transight-tr-current-overview",
+      "to": "w-ai-sessions-wiki-design-transight-tr-runtime-architecture",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-projects-transight-tr-current-overview",
+      "to": "w-ai-sessions-wiki-dev-tasks-transight-tr-core-code-map",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-projects-transight-tr-current-overview",
+      "to": "w-ai-sessions-wiki-decisions-2026-06-24-phase-7-implementation-baseline",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-projects-transight-tr-june-2026-delivery-status",
+      "to": "w-ai-sessions-wiki-sources-2026-06-24-runtime-and-ops-refresh",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-projects-transight-tr-june-2026-delivery-status",
+      "to": "w-stub-docs-dev-guide",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-projects-transight-tr-june-2026-delivery-status",
+      "to": "w-stub-docs-ko-internal-implementation-status",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-sources-2026-06-13-product-docs-and-code-baseline",
+      "to": "w-ai-sessions-wiki-projects-transight-tr-current-overview",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-sources-2026-06-13-product-docs-and-code-baseline",
+      "to": "w-ai-sessions-wiki-design-transight-tr-runtime-architecture",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-sources-2026-06-13-product-docs-and-code-baseline",
+      "to": "w-ai-sessions-wiki-dev-tasks-transight-tr-core-code-map",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-sources-2026-06-13-product-docs-and-code-baseline",
+      "to": "w-ai-sessions-wiki-decisions-2026-06-13-transight-runtime-baseline",
+      "type": "relates",
+      "source": "wiki"
+    },
+    {
+      "from": "w-ai-sessions-wiki-sources-2026-06-24-runtime-and-ops-refresh",
+      "to": "w-ai-sessions-wiki-decisions-2026-06-24-phase-7-implementation-baseline",
+      "type": "relates",
+      "source": "wiki"
+    }
+  ]
+}
