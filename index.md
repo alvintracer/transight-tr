@@ -1,6 +1,6 @@
-# TranSight TR Context Index
+# Bonanza TTR Context Index
 
-This vault is the operating context for the TranSight TR / Bonanza Travel Rule Gateway project.
+This vault is the operating context for the Bonanza TTR Travel Rule Gateway project.
 
 ## Root Docs
 

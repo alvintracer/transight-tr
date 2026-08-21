@@ -49,7 +49,7 @@ Bonanza TTR은 기존의 “여러 Travel Rule 네트워크를 모두 adapter로
 flowchart LR
   subgraph FI["Financial Institution"]
     CORE["Core Banking / Payment System"]
-    CH["Dedicated line / mTLS / VPN / section encryption"]
+    CH["Dedicated line / mTLS / VPN / channel encryption"]
   end
 
   subgraph BZ["Bonanza"]

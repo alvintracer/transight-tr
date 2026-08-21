@@ -1,11 +1,11 @@
-# 에러 코드
+# Error Codes
 
-## Transfer 거부 사유 (CODE VASP 호환)
+## Transfer Denial Reasons
 
-| 코드 | 설명 |
-|------|------|
+| Code | Description |
+|------|-------------|
 | `NOT_FOUND_ADDRESS` | 지갑 주소를 찾을 수 없음 |
-| `NOT_SUPPORTED_SYMBOL` | 지원하지 않는 코인 심볼 |
+| `NOT_SUPPORTED_SYMBOL` | 지원하지 않는 자산 |
 | `NOT_KYC_USER` | KYC 미완료 사용자 |
 | `INPUT_NAME_MISMATCHED` | 수신인 이름 불일치 |
 | `DOB_MISMATCHED` | 생년월일 불일치 |
@@ -13,52 +13,55 @@
 | `LACK_OF_INFORMATION` | 정보 부족 |
 | `UNKNOWN` | 기타 사유 |
 
-## TranSight 확장 에러 코드
+## Bonanza TTR Errors
 
-### 인증 (HTTP 401)
-| 코드 | 설명 |
-|------|------|
-| `AUTH_INVALID_SIGNATURE` | 서명 검증 실패 |
-| `AUTH_EXPIRED_NONCE` | Nonce 만료 |
-| `AUTH_UNKNOWN_VASP` | 등록되지 않은 VASP |
-| `AUTH_KEY_MISMATCH` | 공개키 불일치 |
+### Authentication
 
-### KYT (HTTP 403)
-| 코드 | 설명 |
-|------|------|
-| `KYT_BLOCK` | KYT 위험 판정 → PII 전송 차단 |
-| `KYT_TIMEOUT` | KYT 조회 시간 초과 |
+| Code | HTTP | Description |
+|------|------|-------------|
+| `AUTH_INVALID_SIGNATURE` | 401 | Request signature verification failed. |
+| `AUTH_EXPIRED_NONCE` | 401 | Nonce or timestamp expired. |
+| `AUTH_UNKNOWN_VASP` | 401 | Requesting VASP is not registered. |
+| `AUTH_KEY_MISMATCH` | 401 | Signing key does not match registry. |
 
-### 전송 (HTTP 400/404/409)
-| 코드 | 설명 |
-|------|------|
-| `TRANSFER_NOT_FOUND` | Transfer를 찾을 수 없음 |
-| `TRANSFER_INVALID_STATUS` | 잘못된 상태 전이 |
-| `TRANSFER_DUPLICATE` | 중복 transferId |
+### VASP Registry
 
-### IVMS101 (HTTP 400)
-| 코드 | 설명 |
-|------|------|
-| `IVMS101_INVALID_PAYLOAD` | 잘못된 payload 형식 |
-| `IVMS101_DECRYPTION_FAILED` | 복호화 실패 |
-| `IVMS101_VALIDATION_FAILED` | 스키마 검증 실패 |
+| Code | HTTP | Description |
+|------|------|-------------|
+| `VASP_NOT_FOUND` | 404 | VASP is not registered. |
+| `VASP_KEY_NOT_FOUND` | 404 | Active public key does not exist. |
+| `VASP_KEY_EXPIRED` | 409 | Public key is expired or inactive. |
+| `ADDRESS_VERIFY_REPLACED` | 410 | Legacy address verification was replaced by OwnerCheck. |
 
-### VASP (HTTP 400/404)
-| 코드 | 설명 |
-|------|------|
-| `VASP_NOT_FOUND` | 수신 VASP를 찾을 수 없음 |
-| `VASP_HEALTH_DOWN` | 수신 VASP 상태 비정상 |
-| `VASP_KEY_EXPIRED` | 수신 VASP 공개키 만료 |
+### Transfer
 
-### 채널 (HTTP 502/504)
-| 코드 | 설명 |
-|------|------|
-| `CHANNEL_ROUTING_FAILED` | 프로토콜 어댑터 라우팅 실패 |
-| `CHANNEL_TIMEOUT` | 수신 VASP/프로바이더 응답 시간 초과 |
+| Code | HTTP | Description |
+|------|------|-------------|
+| `INVALID_REQUEST` | 400 | Required field is missing or malformed. |
+| `TRANSFER_NOT_FOUND` | 404 | Transfer does not exist. |
+| `TRANSFER_DUPLICATE` | 409 | Duplicate transfer id or idempotency key. |
+| `TRANSFER_INVALID_STATUS` | 409 | Current status does not allow the requested transition. |
+| `ROUTING_FAILED` | 502 | Beneficiary endpoint could not be reached. |
 
-### GTR (HTTP 502)
-| 코드 | 설명 |
-|------|------|
-| `GTR_NOT_CONFIGURED` | GTR API Key 미설정 |
-| `GTR_SERVICE_ERROR` | GTR API 오류 |
-| `GTR_FIELD_NOT_SUPPORTED` | 상대 VASP가 요청 PII 필드를 지원하지 않음 |
+### OwnerCheck
+
+| Code | HTTP | Description |
+|------|------|-------------|
+| `OWNER_CHECK_NOT_FOUND` | 404 | OwnerCheck request does not exist. |
+| `OWNER_CHECK_DUPLICATE` | 409 | Duplicate OwnerCheck id. |
+| `OWNER_CHECK_EXPIRED` | 410 | OwnerCheck TTL expired. |
+| `OWNER_CHECK_POLICY_MISMATCH` | 422 | Requested matching policy is not supported. |
+
+### KYT
+
+| Code | HTTP | Description |
+|------|------|-------------|
+| `KYT_BLOCK` | 403 | KYT policy blocked the transfer before relay. |
+| `KYT_TIMEOUT` | 504 | KYT provider timed out. |
+| `KYT_SERVICE_ERROR` | 502 | KYT provider returned an error. |
+
+### External Adapter Policy
+
+| Code | HTTP | Description |
+|------|------|-------------|
+| `PROTOCOL_DISABLED` | 403 | GTR, Sumsub, or VerifyVASP adapter is disabled in the core data plane. |

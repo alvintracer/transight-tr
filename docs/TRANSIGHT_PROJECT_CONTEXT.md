@@ -1,17 +1,17 @@
-# TranSight TR Project Context
+# Bonanza TTR Project Context
 
 Last updated: 2026-08-21
 
 ## 1. Product Direction
 
-TranSight TR is being redesigned as Bonanza's Travel Rule Gateway.
+Bonanza TTR is the Travel Rule Gateway maintained in this codebase.
 
 The core product is no longer a multi-adapter hub that tries to connect every Travel Rule network at once. The baseline is a CodeVASP-compatible network operated by Bonanza:
 
 - Bonanza stores and serves VASP public keys.
 - Originating institutions encrypt Travel Rule payloads with the beneficiary VASP public key.
 - Bonanza relays encrypted payloads and manages transaction metadata, status, audit, and operational routing.
-- Banks and regulated financial institutions may connect through Bonanza's existing VAN/electronic financial auxiliary infrastructure, including IDC-hosted servers, dedicated connectivity, mTLS, VPN/IPsec, and section encryption.
+- Banks and regulated financial institutions may connect through Bonanza's existing VAN/electronic financial auxiliary infrastructure, including IDC-hosted servers, dedicated connectivity, mTLS, VPN/IPsec, and channel encryption.
 - Non-financial VASPs and overseas exchanges can use cloud APIs or a CodeVASP-compatible install assistant/SDK.
 
 ## 2. Confirmed Architecture Decisions

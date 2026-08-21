@@ -15,7 +15,7 @@ flowchart LR
   DB[(Registry / Transfers / OwnerChecks)]
   BFI[Beneficiary VASP Endpoint]
 
-  FI -->|section encryption / mTLS / VPN / leased line| GW
+  FI -->|channel encryption / mTLS / VPN / leased line| GW
   GW --> DB
   GW -->|CodeVASP-compatible encrypted relay| BFI
 ```
@@ -218,23 +218,23 @@ Request:
   "network": "xrp",
   "originatorVaspEntityId": "bank-a",
   "beneficiaryVaspEntityId": "exchange-b",
-  "payload": "ENCRYPTED_OR_HASHED_OWNER_CHECK_PAYLOAD",
+  "payload": "ENCRYPTED_OWNER_CHECK_PAYLOAD_BASE64",
   "policy": {
     "requireDobMatch": true,
-    "nameMatchingPolicy": "codevasp-default"
+    "nameMatchingPolicy": "normalized-exact"
   }
 }
 ```
 
 Policy baseline:
 
-- Name comparison should follow the CodeVASP-compatible default:
+- Name comparison baseline:
   - case-insensitive
   - whitespace-insensitive
   - compare surname/given-name separated forms where available
   - compare first+last and last+first
   - use local-name fields as fallback
-- DOB match is required by default in Bonanza OwnerCheck v1.
+- DOB match is required by default in Bonanza OwnerCheck v1 unless the beneficiary policy explicitly allows another rule.
 - VASP-specific comparison differences should be represented in `policy` or VASP `metadata`, not hard-coded into the common relay.
 
 Sequence:
@@ -278,11 +278,13 @@ Terminal statuses:
 
 OwnerCheck statuses:
 
-- `pending`
-- `verified`
-- `denied`
-- `error`
-- `canceled`
+| Status | Meaning |
+| --- | --- |
+| `pending` | Waiting for beneficiary response |
+| `verified` | Same-owner check matched |
+| `denied` | Same-owner check failed or was declined |
+| `expired` | No response within TTL |
+| `failed` | Routing or system error |
 
 ## 7. Error Codes
 

@@ -1,21 +1,18 @@
 import { defineConfig } from 'vitepress';
 
 export default defineConfig({
-  title: 'TranSight TR',
-  description: 'Asymmetric Bridge Travel Rule Solution — API Documentation',
-
-  // 다크모드 기본
+  title: 'Bonanza TTR',
+  description: 'Bonanza Travel Rule Gateway API documentation',
   appearance: 'dark',
 
-  // 다국어 설정
   locales: {
     ko: {
       label: '한국어',
       lang: 'ko',
-      title: 'TranSight TR',
-      description: '비대칭 브릿지 기반 금융기관 호환 트래블룰 솔루션 — API 문서',
+      title: 'Bonanza TTR',
+      description: 'CodeVASP 호환 트래블룰 게이트웨이와 동일 계정주 검증 API 문서',
       themeConfig: {
-        siteTitle: 'TR',
+        siteTitle: 'TTR',
         nav: [
           { text: '가이드', link: '/ko/guide/introduction' },
           { text: 'API', link: '/ko/api/overview' },
@@ -30,13 +27,13 @@ export default defineConfig({
                 { text: '소개', link: '/ko/guide/introduction' },
                 { text: '아키텍처', link: '/ko/guide/architecture' },
                 { text: '빠른 시작', link: '/ko/guide/quickstart' },
-                { text: '인증', link: '/ko/guide/authentication' },
+                { text: '인증과 서명', link: '/ko/guide/authentication' },
               ],
             },
             {
               text: '핵심 개념',
               items: [
-                { text: '비대칭 브릿지', link: '/ko/guide/asymmetric-bridge' },
+                { text: '금융기관 채널', link: '/ko/guide/fi-channel' },
                 { text: 'Atomic KYT Gate', link: '/ko/guide/kyt-gate' },
                 { text: '상태 머신', link: '/ko/guide/state-machine' },
                 { text: '암호화', link: '/ko/guide/encryption' },
@@ -45,21 +42,22 @@ export default defineConfig({
           ],
           '/ko/api/': [
             {
-              text: 'API 레퍼런스',
+              text: 'API Reference',
               items: [
                 { text: '개요', link: '/ko/api/overview' },
                 { text: 'Health Check', link: '/ko/api/health' },
                 { text: 'VASP Registry', link: '/ko/api/vasp-registry' },
                 { text: 'Transfer Authorization', link: '/ko/api/transfer-auth' },
-                { text: 'Transfer Response', link: '/ko/api/transfer-response' },
+                { text: 'OwnerCheck', link: '/ko/api/owner-check' },
                 { text: 'Transfer Status', link: '/ko/api/transfer-status' },
                 { text: 'Transfer Result', link: '/ko/api/transfer-result' },
               ],
             },
             {
-              text: 'Protocol Adapters',
+              text: 'Legacy',
               items: [
-                { text: 'GTR Adapter', link: '/ko/api/gtr-adapter' },
+                { text: 'Transfer Response', link: '/ko/api/transfer-response' },
+                { text: 'External Adapters', link: '/ko/api/gtr-adapter' },
               ],
             },
           ],
@@ -77,7 +75,7 @@ export default defineConfig({
             {
               text: '내부 공유 문서',
               items: [
-                { text: 'TTR 전략 (v2)', link: '/ko/internal/strategy' },
+                { text: '사업 전략', link: '/ko/internal/strategy' },
                 { text: '구현 현황', link: '/ko/internal/implementation-status' },
                 { text: 'VASP 연동 비용', link: '/ko/internal/vasp-integration-cost' },
               ],
@@ -89,10 +87,10 @@ export default defineConfig({
     en: {
       label: 'English',
       lang: 'en',
-      title: 'TranSight TR',
-      description: 'Asymmetric Bridge Travel Rule Solution — API Documentation',
+      title: 'Bonanza TTR',
+      description: 'CodeVASP-compatible Travel Rule Gateway and OwnerCheck API documentation',
       themeConfig: {
-        siteTitle: 'TR',
+        siteTitle: 'TTR',
         nav: [
           { text: 'Guide', link: '/en/guide/introduction' },
           { text: 'API', link: '/en/api/overview' },
@@ -113,7 +111,7 @@ export default defineConfig({
             {
               text: 'Core Concepts',
               items: [
-                { text: 'Asymmetric Bridge', link: '/en/guide/asymmetric-bridge' },
+                { text: 'Financial Institution Channels', link: '/en/guide/fi-channel' },
                 { text: 'Atomic KYT Gate', link: '/en/guide/kyt-gate' },
                 { text: 'State Machine', link: '/en/guide/state-machine' },
                 { text: 'Encryption', link: '/en/guide/encryption' },
@@ -128,15 +126,15 @@ export default defineConfig({
                 { text: 'Health Check', link: '/en/api/health' },
                 { text: 'VASP Registry', link: '/en/api/vasp-registry' },
                 { text: 'Transfer Authorization', link: '/en/api/transfer-auth' },
-                { text: 'Transfer Response', link: '/en/api/transfer-response' },
+                { text: 'OwnerCheck', link: '/en/api/owner-check' },
                 { text: 'Transfer Status', link: '/en/api/transfer-status' },
                 { text: 'Transfer Result', link: '/en/api/transfer-result' },
               ],
             },
             {
-              text: 'Protocol Adapters',
+              text: 'Legacy',
               items: [
-                { text: 'GTR Adapter', link: '/ko/api/gtr-adapter' },
+                { text: 'Transfer Response', link: '/en/api/transfer-response' },
               ],
             },
           ],
@@ -157,7 +155,7 @@ export default defineConfig({
 
   themeConfig: {
     logo: { light: '/logo-dark.png', dark: '/logo-light.png' },
-    siteTitle: 'TR',
+    siteTitle: 'TTR',
     socialLinks: [
       { icon: 'github', link: 'https://github.com/alvintracer/transight-tr' },
     ],
@@ -165,12 +163,11 @@ export default defineConfig({
       provider: 'local',
     },
     footer: {
-      message: 'Asymmetric Bridge Travel Rule Solution',
-      copyright: '© 2026 Bonanza Factory Co., Ltd.',
+      message: 'Bonanza Travel Rule Gateway',
+      copyright: 'Copyright 2026 Bonanza Factory Co., Ltd.',
     },
   },
 
-  // Root redirect
   head: [
     ['link', { rel: 'icon', type: 'image/png', href: '/logo-favicon.png' }],
   ],

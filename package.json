@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "TranSight TR — CODE VASP compatible Travel Rule solution built on Supabase",
+  "description": "Bonanza TTR CodeVASP-compatible Travel Rule Gateway built on Supabase",
   "scripts": {
     "dev": "supabase start",
     "dev:stop": "supabase stop",

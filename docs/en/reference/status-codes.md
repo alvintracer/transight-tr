@@ -4,13 +4,23 @@ See the [State Machine guide](/en/guide/state-machine) for detailed transition r
 
 ## Transfer Statuses
 
-| Status | Code | Terminal | Description |
-|--------|------|----------|-------------|
-| Waiting | `wait` | ❌ | Awaiting beneficiary response |
-| Verified | `verified` | ❌ | Authorized by beneficiary |
-| Denied | `denied` | ✅ | Denied by beneficiary |
-| Pending | `pending` | ❌ | Before blockchain submission |
-| Processing | `processing` | ❌ | Submitted to blockchain |
-| Wait Confirmed | `wait-confirmed` | ❌ | Mined, no finality |
-| Confirmed | `confirmed` | ❌ | Transfer complete |
-| Canceled | `canceled` | ✅ | Transfer canceled |
+| Code | Terminal | Description |
+|------|----------|-------------|
+| `wait` | No | Waiting for KYT or beneficiary response |
+| `verified` | No | Authorized by beneficiary VASP |
+| `denied` | Yes | Denied by KYT, routing, or beneficiary policy |
+| `pending` | No | Additional verification or operational processing |
+| `processing` | No | On-chain submission in progress |
+| `wait-confirmed` | No | Awaiting finality after recording |
+| `confirmed` | Yes | txHash report completed |
+| `canceled` | Yes | Transfer canceled |
+
+## OwnerCheck Statuses
+
+| Code | Terminal | Description |
+|------|----------|-------------|
+| `pending` | No | Waiting for beneficiary response |
+| `verified` | Yes | Same-owner check matched |
+| `denied` | Yes | Same-owner check failed or was declined |
+| `expired` | Yes | No response within TTL |
+| `failed` | Yes | Routing or system error |

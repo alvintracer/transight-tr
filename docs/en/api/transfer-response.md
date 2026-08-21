@@ -1,80 +1,52 @@
-# Transfer Response API
+# Transfer Response
 
-API for handling beneficiary (receiving VASP) responses.
+`transfer-response` is a compatibility API for the older beneficiary response flow. After the 2026-08 redesign, new integrations should use `transfer-auth` and `owner-check`.
 
-## 8-Step Handshake Mapping
+## Current Position
 
-| Step | API |
-|------|-----|
-| Step 4 | `POST /transfer-auth/incoming` (receive incoming) |
-| **Step 5** | `POST /transfer-response/confirm` or `/deny` |
-| **Step 6** | `POST /transfer-response/beneficiary` |
+| Area | Policy |
+|------|--------|
+| New Travel Rule relay | `POST /transfer-auth` |
+| Incoming request intake | `POST /transfer-auth/incoming` |
+| Beneficiary verification result | `POST /transfer-auth/finish` or an operating webhook |
+| Identical account owner check | `POST /owner-check` |
+| Legacy response API | Compatibility only |
 
-## Endpoints
+## Legacy Endpoints
 
-### List Pending Transfers
-
-```http
-GET /transfer-response/pending
-```
-
-**Query Parameters:**
-
-| Param | Type | Description |
-|-------|------|-------------|
-| vasp | string | Filter by VASP Entity ID |
-| limit | number | Page size (default 20) |
-| offset | number | Offset |
-
-### Confirm Recipient (MATCHED)
+Use these only when an existing counterparty already depends on this shape.
 
 ```http
 POST /transfer-response/confirm
-```
-
-```json
-{
-  "transferId": "abc-123",
-  "beneficiaryPayload": "encrypted-ivms101-response"
-}
-```
-
-### Deny Recipient (NOT_MATCHED)
-
-```http
 POST /transfer-response/deny
-```
-
-```json
-{
-  "transferId": "abc-123",
-  "reasonType": "NOT_FOUND_ADDRESS",
-  "reasonMsg": "No matching wallet address found"
-}
-```
-
-### Provide Beneficiary IVMS101 (Step 6)
-
-```http
 POST /transfer-response/beneficiary
-```
-
-```json
-{
-  "transferId": "abc-123",
-  "payload": "encrypted-beneficiary-ivms101",
-  "beneficiaryInfo": { "name": "John Doe" }
-}
-```
-
-### Webhook Callback
-
-```http
+GET  /transfer-response/pending
 POST /transfer-response/webhook
 ```
 
-Receives async results from external TR solutions (Sumsub, CODE, etc).
+## Migration Guide
 
-**Sumsub:** `{ "source": "sumsub", "txnId": "abc-123", "status": "completed" }`
+| Legacy concept | New API |
+|----------------|---------|
+| Beneficiary verify/deny response | `POST /transfer-auth/finish` |
+| Originator status lookup | `GET /transfer-auth?id={transferId}` |
+| txHash reporting | `POST /transfer-auth/result` |
+| Address or owner pre-check | `POST /owner-check` |
 
-**CODE:** `{ "source": "code", "transferId": "abc-123", "result": "verified" }`
+## Response Contract
+
+The legacy response keeps the contract small for compatibility.
+
+```json
+{
+  "result": "success",
+  "transferId": "550e8400-e29b-41d4-a716-446655440000",
+  "status": "verified"
+}
+```
+
+## Notes
+
+- No new product behavior is added to this API.
+- It is not used as a GTR, Sumsub, or VerifyVASP data plane.
+- New FI and VASP documentation should point to `transfer-auth` and `owner-check`.

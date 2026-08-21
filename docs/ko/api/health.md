@@ -1,83 +1,48 @@
 # Health Check
 
-시스템 상태와 DB 연결을 확인합니다.
+Bonanza TTR Gateway와 database 연결 상태를 확인합니다.
 
-## 요청
+## Request
 
 ```http
 GET /health
+Authorization: Bearer <BONANZA_TTR_API_KEY>
 ```
 
-### 헤더
+## Response
 
-| 헤더 | 값 |
-|------|-----|
-| `Authorization` | `Bearer <API_KEY>` |
-
-## 응답
-
-### 200 OK — 정상
+### 200 OK
 
 ```json
 {
   "status": "up",
-  "timestamp": "2026-06-01T13:42:49.819Z",
-  "service": "TranSight Hub",
+  "timestamp": "2026-08-21T09:00:00.000Z",
+  "service": "Bonanza TTR Gateway",
   "version": "0.1.0",
   "components": {
     "database": "up",
-    "vasps_registered": 4
+    "vasps_registered": 12,
+    "active_public_keys": 12
   }
 }
 ```
 
-### 503 Service Unavailable — DB 장애
+### 503 Service Unavailable
 
 ```json
 {
   "status": "down",
-  "timestamp": "2026-06-01T13:42:49.819Z",
-  "error": "Connection refused"
+  "timestamp": "2026-08-21T09:00:00.000Z",
+  "service": "Bonanza TTR Gateway",
+  "error": "database unavailable"
 }
 ```
 
-## 응답 필드
+## Field Notes
 
-| 필드 | 타입 | 설명 |
-|------|------|------|
-| `status` | `"up" \| "down"` | 전체 시스템 상태 |
-| `timestamp` | `string` | ISO8601 UTC 응답 시각 |
-| `service` | `string` | 서비스 이름 |
-| `version` | `string` | API 버전 |
-| `components.database` | `string` | DB 연결 상태 |
-| `components.vasps_registered` | `number` | 등록된 VASP 수 |
-
-## 사용 예시
-
-::: code-group
-
-```bash [cURL]
-curl -H "Authorization: Bearer YOUR_API_KEY" \
-  https://api.transight.io/v1/health
-```
-
-```typescript [TypeScript]
-const res = await fetch(
-  'https://api.transight.io/v1/health',
-  { headers: { Authorization: `Bearer ${API_KEY}` } }
-);
-const data = await res.json();
-console.log(data.status); // "up"
-```
-
-```python [Python]
-import requests
-
-res = requests.get(
-    "https://api.transight.io/v1/health",
-    headers={"Authorization": f"Bearer {API_KEY}"}
-)
-print(res.json()["status"])  # "up"
-```
-
-:::
+| Field | Description |
+|-------|-------------|
+| `status` | Gateway health status. |
+| `components.database` | Core metadata database connectivity. |
+| `components.vasps_registered` | Registered VASP count. |
+| `components.active_public_keys` | Active public key count available for relay. |

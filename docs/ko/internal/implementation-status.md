@@ -1,84 +1,65 @@
 # 구현 현황
 
-> 최종 업데이트: 2026-06-06
+최종 업데이트: 2026-08-21
 
-## Core Infrastructure
+## Current Core
 
-| 모듈 | 상태 | 비고 |
-|------|------|------|
-| Edge Function (Deno) | ✅ | Supabase Edge Functions |
-| VASP Registry | ✅ | CRUD + 공개키 로테이션 + 주소 검증 |
-| Transfer Auth | ✅ | 출금/입금/상태조회/결과보고/취소 |
-| KYT Atomic Gate | ✅ | 위험 주소 자동 차단, PII 미전송 |
-| Protocol Adapter Router | ✅ | alliance_name 기반 라우팅 |
-| Audit Log | ✅ | 전체 의사결정 추적 |
-| Security Layer | ✅ | Ed25519 서명, Rate Limit, Nonce, Timestamp |
-| TTL Queue (Escrow) | ✅ | 입금 TR 매칭용 |
-| NaCl Box E2E 암호화 | ✅ | PII 비열람 구조 |
+Bonanza TTR은 2026-08 redesign 이후 다음 core로 정리합니다.
 
-## Protocol Adapters
+| Component | Status | Role |
+|-----------|--------|------|
+| VASP Registry | Active | VASP metadata, endpoint, active public key 관리 |
+| Public Key Directory | Active | 수신 VASP public key 조회와 rotation |
+| Transfer Auth | Active | encrypted IVMS101 payload relay와 상태 관리 |
+| OwnerCheck | Active | 동일 계정주 검증 relay extension |
+| KYT Gate | Active | relay 전 risk check와 block policy |
+| Protocol Adapter | Active-limited | Bonanza/CodeVASP-compatible route만 활성 |
+| Transfer Response | Legacy | 기존 응답 흐름 호환용 |
 
-| Adapter | Alliance | 상태 | 프로토콜 | 대상 |
-|---------|----------|------|----------|------|
-| `CodeVaspAdapter` | `code` | ✅ 구현 | NaCl Box + Ed25519 | 업비트, 빗썸, 코인원, 코빗 |
-| `SumsubAdapter` | `sumsub` | ✅ 구현 | HMAC-SHA256 | Sumsub TRUST 프로토콜 |
-| `GtrAdapter` | `gtr` | ✅ 구현 | Curve25519 + X-API-KEY | Binance, OKX, Bybit (GTR 경유) |
-| `DirectAdapter` | `direct` | ✅ 구현 | NaCl Box + Ed25519 | P2P 직접 연결 |
-| `TransightInternalAdapter` | `transight` | ✅ 구현 | 내부 DB | 동일 얼라이언스 |
-| `VerifyVaspAdapter` | `verifyvasp` | ⚠️ Stub | SHA-256 이름 해시 | VV Central Server |
+## Disabled By Design
 
-::: info GTR Adapter 상세
-- GTR VASP 프로필 DB (`gtr_vasp_profiles`)
-- GTR 전송 로그 DB (`gtr_transfer_logs`) — PII 미저장, SHA-256 해시만
-- One-Step PII Verification API 호출
-- GTR 응답 → TTR 결과 매핑 (verified / denied)
-- Curve25519 공개키 관리 및 만료 체크
-- 10초 타임아웃 + fail-closed 정책
-- `adapterOptions.gtr` 클라이언트 옵션 지원
+다음 adapter는 core data plane에서 제외합니다.
 
-→ [GTR Adapter API 문서](/ko/api/gtr-adapter)
-:::
+| Adapter | Status | Reason |
+|---------|--------|--------|
+| GTR | Disabled | 외부 provider rail로 분리 검토. 현재 core scope 아님 |
+| Sumsub | Disabled | 외부 SaaS data plane 의존도와 계약 구조 불명확 |
+| VerifyVASP | Disabled | Enclave/VV Central 구조와 별도 파트너 모델로 분리 |
 
-## DB Schema
+비활성 adapter 호출은 `PROTOCOL_DISABLED` 정책 응답을 반환합니다.
 
-### 기존 테이블
+## Implemented API Surface
 
-| 테이블 | 용도 |
-|--------|------|
-| `vasps` | VASP 레지스트리 |
-| `public_keys` | 공개키 관리 |
-| `transfers` | Travel Rule 전송 기록 |
-| `ttl_queue` | TTL 에스크로 매칭 |
-| `audit_log` | 감사 로그 |
-| `kyt_tr_block_registry` | KYT 자동 차단 레지스트리 |
+| API | Purpose |
+|-----|---------|
+| `GET /health` | Gateway health check |
+| `GET /vasp-registry` | VASP 목록 조회 |
+| `GET /vasp-registry/pubkey/{vaspEntityId}` | active public key 조회 |
+| `POST /vasp-registry` | VASP와 최초 public key 등록 |
+| `POST /vasp-registry/rotate-key` | public key rotation |
+| `POST /transfer-auth` | 출금 Travel Rule relay |
+| `POST /transfer-auth/incoming` | 입금 encrypted Travel Rule 수신 |
+| `GET /transfer-auth?id={transferId}` | Transfer 상태 조회 |
+| `POST /transfer-auth/result` | txHash 보고 |
+| `POST /owner-check` | 동일 계정주 검증 |
 
-### GTR Adapter 추가 (2026-06-06)
+## Data Boundary
 
-| 테이블 | 용도 |
-|--------|------|
-| `gtr_vasp_profiles` | GTR VASP 프로필 (Curve25519 키, 검증 필드) |
-| `gtr_transfer_logs` | GTR 전송 로그 (검증 결과, 해시만) |
+| Data | Bonanza core handling |
+|------|-----------------------|
+| VASP public key | 저장 및 공개 조회 |
+| Encrypted IVMS101 payload | relay, metadata 기록 |
+| Transfer metadata | 상태, routing, result, audit 저장 |
+| OwnerCheck payload | encrypted relay 기준 |
+| 이름, 생년월일 | v1 public relay에서는 평문 저장 없음 |
+| 금융기관 IDC 채널 평문 | 별도 위수탁, 전용성 채널, 운영 통제로 제한 |
 
-## 미구현 (Phase 2~3)
+## Remaining Engineering Work
 
-::: warning 다음 단계
-1. Tenant / Institution 멀티테넌시
-2. Travel Rule 임계값 Rule Engine
-3. PII Verification Orchestrator (멀티 프로바이더)
-4. Webhook / Status Manager
-5. 국내 VASP Direct Adapter (업비트, 빗썸)
-6. 해외 VASP Direct Adapter (Bybit)
-7. Provider Bridge Adapter (Notabene)
-8. Manual / OON Adapter
-9. STR 후보 탐지 연계
-10. 기관별 정책 커스터마이징
-:::
-
-## Phase 매핑
-
-| Phase | 상태 | 핵심 작업 |
-|-------|------|-----------|
-| **Phase 1** Bootstrap | 🟢 진행 중 | GTR Adapter ✅, KYT Gate ✅, Core API ✅ |
-| **Phase 2** Domestic Rail | ⬜ 예정 | 업비트/빗썸 Direct Adapter |
-| **Phase 3** Hybrid Global | ⬜ 예정 | Bybit Direct, Notabene Bridge |
-| **Phase 4** TTR Network | ⬜ 예정 | 해외 VASP 직접 참여 |
+| Area | Next Action |
+|------|-------------|
+| OwnerCheck policy | 국내 VASP별 name/DOB normalization rule 확정 |
+| SDK/assistant | 기존 CodeVASP 사용 기관이 npm install로 붙는 자동화 제공 |
+| FI channel | 전용회선, VPN/IPsec, mTLS 운영 profile 문서화 |
+| Admin console | VASP key rotation, endpoint, health, SLA 화면 |
+| Audit pack | 금융기관 제출용 처리흐름, 로그 항목, 장애 대응 evidence 정리 |

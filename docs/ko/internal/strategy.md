@@ -1,114 +1,66 @@
-# TTR 전략 (v2)
+# TTR 전략
 
-## 디지털 자산 유통을 위한 컴플라이언스 패키지
+## 결론
 
-::: tip 핵심 정의
-TTR은 단순 트래블룰 솔루션이 아니라, 국내 금융기관이 디지털 자산을 유통하기 위해 필요한 **KYT + Travel Rule + PII Verification + VASP 연결성 + 감사증적**을 통합 제공하는 **디지털 자산 컴플라이언스 게이트웨이**입니다.
-:::
+Bonanza TTR은 "여러 해외 Travel Rule provider를 중계하는 adapter hub"가 아니라, CodeVASP 구조를 토대로 한 Bonanza 운영형 Travel Rule Gateway로 간다.
 
-## 전략 공식
+핵심 역할은 세 가지입니다.
 
-```
-Digital Asset Compliance Package
-= TranSight KYT + TTR Travel Rule Bridge + PII Verification
-  + Domestic/Global VASP Connectivity + Audit Evidence
-```
+1. VASP public key directory를 운영한다.
+2. 수신 VASP public key로 암호화된 Travel Rule payload를 relay한다.
+3. 금융기관이 쓰기 쉬운 국내 IDC/VAN형 접속 채널을 제공한다.
 
-## 전략적 위계
+## Product Position
 
-| 순위 | 목표 | 설명 |
-|------|------|------|
-| **1순위** | TranSight KYT를 금융기관 표준으로 | 핵심 IP = 주소 인텔리전스, 자금흐름 분석, 위험평가 모델 |
-| **2순위** | TTR로 KYT 도입 장벽을 낮춤 | TR은 고객 온보딩을 쉽게 만드는 배관 |
-| **3순위** | TR 자체는 적자 안 내는 인프라 | TR = Compliance Plumbing |
+| Customer | Primary Integration | Value |
+|----------|---------------------|-------|
+| 은행, 전자금융업자 | Bonanza IDC 채널 | 내부망, 망분리, 보안심사 부담을 줄인 Travel Rule 도입 |
+| 국내 VASP | CodeVASP-compatible API 또는 SDK | 기존 TR pipeline을 크게 바꾸지 않고 public key relay 참여 |
+| 해외 VASP | Cloud API 또는 edge node | 한국 금융기관 및 국내 VASP와의 송수신 대응 |
+| 비의무 VASP | OwnerCheck 중심의 제한 연동 | 동일 계정주 검증 등 enhanced risk mitigation |
 
-::: warning 핵심 원칙
-TTR의 목적은 독립적인 대형 Travel Rule 사업이 아니라, **TranSight KYT를 국내 금융기관 디지털 자산 유통 인프라의 표준으로 만들기 위한 Compliance Gateway를 제공하는 것**입니다.
-:::
+## Architecture Direction
 
-## TTR의 4가지 역할
-
-### 1. Domestic TR Bridge
-국내 금융기관 ↔ 국내 핵심 VASP 직접 연결
-
-- Upbit Direct Adapter
-- Bithumb Direct Adapter
-- 향후 Coinone, Korbit, Gopax
-
-### 2. Global TR Router
-초기 GTR Direct → 향후 Direct Rail 확대
-
-- GTR Direct Adapter (초기 bootstrap)
-- Notabene Adapter (향후)
-- Manual / OON fallback
-
-### 3. PII Verification Hub
-해외 VASP 송금 시 계정주 확인
-
-- 이름 match / 생년월일 match / 법인명 match
-- 주소 소유 확인 / 수취 VASP 계정 확인
-
-### 4. Stablecoin Compliance Gateway
-TranSight KYT와 결합한 스테이블코인 유통 준법 게이트웨이
-
-- KYT risk score + Travel Rule decision + PII verification
-- Approval / hold / reject recommendation
-- Audit trail + STR candidate generation
-
-## 해외 VASP 연결 옵션
-
-해외 VASP에게는 세 가지 연결 옵션을 제공합니다:
-
-| 옵션 | 방식 | 설명 |
-|------|------|------|
-| **A. Provider Bridge** | TTR → 기존 TR 솔루션 → 해외 VASP | 기존 솔루션 변경 불필요 |
-| **B. TTR Direct API** | TTR → 해외 VASP 직접 | 경량 PII Verification부터 시작 |
-| **C. TTR Network Member** | TTR 네트워크 정식 참여 | 한국 금융기관 네트워크 접근 |
-
-## 아키텍처
-
-```
-[국내 금융기관]
- Banks / Pay / Stablecoin / Custodians
-                │
-                ▼
-             [TTR Core]
- ┌──────────────────────────────────┐
- │ - Tenant / Institution Mgmt      │
- │ - Travel Rule Rule Engine         │
- │ - PII Verification Orchestrator   │
- │ - IVMS101 Normalizer              │
- │ - Encryption / Key Policy         │
- │ - KYT Risk Engine Integration     │
- │ - Audit Evidence / Logs           │
- │ - Status & Webhook Manager        │
- └──────────────────────────────────┘
-                │
- ┌──────────────┼───────────────────┐
- ▼              ▼                   ▼
-Domestic      Global Bootstrap    Direct VASP
-Direct Rail   / Provider Bridge   Network
-               │                   │
-Upbit        GTR                 Bybit Direct
-Bithumb      Notabene            Binance Direct
-Coinone      Sumsub/TRP          OKX Direct
+```mermaid
+flowchart LR
+  FI[Financial Institution] -->|Dedicated line, VPN/IPsec, mTLS| IDC[Bonanza IDC Ingress]
+  VASP[VASP or Exchange] -->|Cloud API or SDK| API[Bonanza TTR API]
+  IDC --> Core[Bonanza TTR Core]
+  API --> Core
+  Core --> Keys[Public Key Directory]
+  Core --> Relay[Encrypted Payload Relay]
+  Core --> OC[OwnerCheck]
+  Core --> KYT[KYT Gate]
+  Relay --> BFI[Beneficiary VASP]
+  OC --> BFI
 ```
 
-## 비즈니스 모델
+## Business Rationale
 
-| 구성 | 내용 |
-|------|------|
-| **TranSight KYT 주계약** | API 사용료, Web 계정, 모니터링, 심층분석, STR/보고서 |
-| **TTR 부가 모듈** | 월 기본료, 거래량 기반 수수료, 외부 TR 비용 pass-through |
-| **Custom Integration** | 금융기관 망분리 연동, 국내/해외 VASP direct rail 구축 |
+금융기관은 해외 SaaS나 VASP형 Docker 구성요소를 직접 내부망에 넣기 어렵습니다. Bonanza는 기존 VAN/전자금융보조업자 경험을 바탕으로 다음 근거를 제공합니다.
 
-## 로드맵
+| Role | Rationale |
+|------|-----------|
+| Connectivity operator | 금융기관 전용성 채널, 운영 monitoring, 장애 대응 |
+| Public key directory operator | VASP별 public key와 endpoint의 lifecycle 관리 |
+| Compliance gateway | KYT Gate, audit metadata, 처리상태 evidence 제공 |
+| Integration partner | 금융기관, VASP, 해외 사업자별 접속 방식 차이를 흡수 |
 
-| Phase | 목표 | 핵심 작업 |
-|-------|------|-----------|
-| **Phase 1** | PoC / Bootstrap | GTR Adapter ✅, KYT 연동, 금융기관 PoC |
-| **Phase 2** | Domestic Rail | 업비트/빗썸 Direct, 국내 특금법 rule engine |
-| **Phase 3** | Hybrid Global | Bybit Direct, GTR fallback, Notabene bridge |
-| **Phase 4** | TTR Network | 해외 VASP 직접 참여, KYT intelligence sharing |
+## Scope Exclusions
 
-→ 상세 전략은 [TTR_Strategy_v2_Digital_Asset_Compliance_Package.md](/TTR_Strategy_v2_Digital_Asset_Compliance_Package) 참조
+| Exclusion | Reason |
+|-----------|--------|
+| GTR/Sumsub/VerifyVASP adapter 중심 전략 | core 구조를 복잡하게 만들고 법적/운영상 책임 경계가 흐려짐 |
+| CodeVASP namespace 변경 | 기존 사용기관의 compatibility를 깨지 않음 |
+| OwnerCheck를 Travel Rule 본 검증으로 포장 | 목적과 규제 근거가 다르므로 별도 extension으로 운영 |
+| 모든 기관의 name/DOB 비교 정책 단일화 | 국내 VASP별 KYC 데이터와 normalization 정책 차이를 인정 |
+
+## Roadmap
+
+| Phase | Goal | Output |
+|-------|------|--------|
+| 1 | Core relay 정리 | Registry, public key, transfer-auth, OwnerCheck |
+| 2 | 금융기관 채널 | IDC ingress, mTLS/VPN profile, audit pack |
+| 3 | VASP onboarding | SDK/assistant, API docs, sandbox |
+| 4 | OwnerCheck 고도화 | name/DOB policy matrix, hash/PSI option 검토 |
+| 5 | Optional rails | 외부 provider adapter는 명확한 법적 근거와 고객 수요가 있을 때만 재검토 |

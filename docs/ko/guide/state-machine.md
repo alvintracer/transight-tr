@@ -1,65 +1,45 @@
-# 상태 머신
+# State Machine
 
-Transfer의 라이프사이클은 8단계 상태 머신으로 관리됩니다.
+Transfer는 relay 결과와 온체인 진행 상황에 따라 상태가 바뀝니다.
 
-## 상태 다이어그램
+## Diagram
 
-```
-  ┌──────┐
-  │ WAIT │ ← Transfer 생성 시 초기 상태
-  └──┬───┘
-     │
-     ├──────────────┐
-     ▼              ▼
-┌──────────┐  ┌──────────┐
-│ VERIFIED │  │  DENIED  │ ← 최종 상태
-└────┬─────┘  └──────────┘
-     │
-     ▼
-┌──────────┐
-│ PENDING  │
-└────┬─────┘
-     │
-     ▼
-┌────────────┐
-│ PROCESSING │ ← 블록체인 전송됨
-└────┬───────┘
-     │
-     ▼
-┌────────────────┐
-│ WAIT_CONFIRMED │ ← 마이닝 대기
-└────┬───────────┘
-     │
-     ▼
-┌───────────┐
-│ CONFIRMED │ ← 전송 완료
-└───────────┘
-
-* 모든 상태에서 → CANCELED 전이 가능 (블록체인 미실행 시)
+```mermaid
+stateDiagram-v2
+  [*] --> wait
+  wait --> verified: beneficiary matched
+  wait --> denied: KYT or beneficiary denied
+  verified --> pending: additional processing
+  verified --> processing: chain submission
+  pending --> processing: chain submission
+  processing --> wait_confirmed: mined
+  wait_confirmed --> confirmed: finality
+  verified --> confirmed: txHash report
+  pending --> confirmed: txHash report
+  processing --> confirmed: txHash report
+  wait --> canceled
+  verified --> canceled
+  pending --> canceled
+  processing --> canceled
+  wait_confirmed --> canceled
 ```
 
-## 상태 설명
+## Statuses
 
-| 상태 | 설명 |
-|------|------|
-| `wait` | 수신 VASP 응답 대기 중 |
-| `verified` | 수신 VASP가 인가함 |
-| `denied` | 수신 VASP가 거부함 (최종) |
-| `pending` | 블록체인 전송 전 대기 |
-| `processing` | 블록체인 전송됨, 마이닝 대기 |
-| `wait-confirmed` | 마이닝됨, finality 미확보 |
-| `confirmed` | 전송 완료 (TXID 업데이트) |
-| `canceled` | 전송 취소 (최종) |
+| Status | Terminal | Description |
+|--------|----------|-------------|
+| `wait` | No | Transfer created and waiting for KYT or beneficiary response. |
+| `verified` | No | Beneficiary authorized the Travel Rule request. |
+| `denied` | Yes | KYT, routing, or beneficiary policy denied the request. |
+| `pending` | No | Additional IVMS101, manual, or operational processing is in progress. |
+| `processing` | No | On-chain submission is in progress. |
+| `wait-confirmed` | No | Transaction is recorded but finality is not complete. |
+| `confirmed` | Yes | txHash was reported and the transfer is complete. |
+| `canceled` | Yes | Transfer was canceled before completion. |
 
-## 허용되는 상태 전이
+## Product Rules
 
-| 현재 → | 가능한 다음 상태 |
-|--------|-----------------|
-| `wait` | `verified`, `denied` |
-| `verified` | `pending`, `canceled` |
-| `denied` | *(최종 상태)* |
-| `pending` | `processing`, `canceled` |
-| `processing` | `wait-confirmed`, `canceled` |
-| `wait-confirmed` | `confirmed`, `canceled` |
-| `confirmed` | `canceled` (재조직 등 예외) |
-| `canceled` | *(최종 상태)* |
+- `pending`은 승인 완료 상태가 아닙니다.
+- `denied`와 `canceled`는 일반적으로 terminal입니다.
+- `confirmed` 이후 변경은 chain reorg, 운영 정정, 감사 근거가 있는 경우에만 별도 절차로 처리합니다.
+- OwnerCheck는 별도 상태 머신을 사용하며 Transfer 상태를 자동으로 변경하지 않습니다.

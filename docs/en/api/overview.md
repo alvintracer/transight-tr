@@ -13,7 +13,7 @@ https://api.transight.io/v1
 Service-to-service requests should use the configured service credential plus CodeVASP-compatible request signing where applicable.
 
 ```http
-Authorization: Bearer <TRANSIGHT_API_KEY>
+Authorization: Bearer <BONANZA_TTR_API_KEY>
 ```
 
 ## Endpoints
@@ -61,3 +61,4 @@ Authorization: Bearer <TRANSIGHT_API_KEY>
 - `POST /transfer-auth` requires `beneficiaryVaspEntityId` and an active beneficiary public key.
 - `pending` remains `pending`; it is not auto-converted to `verified`.
 - Legacy `POST /vasp-registry/address-verify` is replaced by OwnerCheck.
+- GTR, Sumsub, and VerifyVASP adapters are disabled in the core data plane.

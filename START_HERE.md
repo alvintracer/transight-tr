@@ -1,6 +1,6 @@
 # START_HERE.md
 
-이 문서는 TranSight TR 저장소에서 AI 에이전트가 가장 먼저 읽어야 하는 프로젝트 진입 가이드입니다.
+이 문서는 Bonanza TTR 저장소에서 AI 에이전트가 가장 먼저 읽어야 하는 프로젝트 진입 가이드입니다.
 
 ## 이 저장소의 성격
 
@@ -12,7 +12,7 @@
 2. AI 업무 위키 / ContextHub  
 `AI-Sessions/`, `index.md`, `log.md`, `AGENTS.md`, `CLAUDE.md`, `CHATGPT.md`
 
-즉, 이 프로젝트는 단순 템플릿이 아니라 **실제 TranSight TR 제품 저장소 안에 AI 업무 위키가 내장된 구조**입니다.
+즉, 이 프로젝트는 단순 템플릿이 아니라 **실제 Bonanza TTR 제품 저장소 안에 AI 업무 위키가 내장된 구조**입니다.
 
 ## 가장 먼저 읽을 문서
 
@@ -31,7 +31,7 @@
 
 ## 프로젝트 핵심 요약
 
-- 제품명: `TranSight TR`
+- 제품명: `Bonanza TTR`
 - 목적: 거래소, 해외 VASP, 은행/핀테크를 연결하는 Travel Rule Hub
 - 차별점: `Atomic KYT Gate`로 위험 거래는 PII 전송 전에 차단
 - 구조: `Supabase Edge Functions + PostgreSQL + Protocol Adapter Layer`

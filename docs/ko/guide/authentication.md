@@ -1,45 +1,45 @@
-# 인증
+# 인증과 서명
 
-## Ed25519 서명 기반 인증
+Bonanza TTR API는 채널에 따라 API credential, request signing, mTLS, VPN/IPsec, 전용회선을 조합합니다.
 
-TranSight TR은 모든 TR 메시지 교환에 **Ed25519 디지털 서명**을 사용합니다.
+## HTTP Authentication
 
-## 서명 생성 흐름
-
-```
-1. datetime = ISO8601 UTC 현재 시각
-2. nonce = 랜덤 정수 (100초 내 중복 불가)
-3. body = 요청 본문 (JSON string)
-4. data = concat(datetime_bytes, body_bytes, nonce_4bytes_bigendian)
-5. signature = Ed25519.sign(data, signing_key)
-6. 헤더에 포함
+```http
+Authorization: Bearer <BONANZA_TTR_API_KEY>
 ```
 
-## 필수 헤더
+금융기관 IDC 채널은 네트워크 접근제어, 기관 인증서, IP allowlist, 전용성 회선을 함께 적용할 수 있습니다.
 
-| 헤더 | 예시 |
-|------|------|
-| `X-Code-Req-Datetime` | `2026-06-01T15:10:00.000Z` |
-| `X-Code-Req-Nonce` | `1234567890` |
-| `X-Code-Req-PubKey` | `Base64(Ed25519 public key)` |
-| `X-Code-Req-Signature` | `Base64(signature)` |
-| `X-Request-Origin` | `transight:my-vasp-id` |
+## CodeVASP-Compatible Headers
 
-## TypeScript 구현
+| Header | Description |
+| --- | --- |
+| `X-Code-Req-Datetime` | ISO8601 UTC datetime |
+| `X-Code-Req-Nonce` | Replay-prevention nonce |
+| `X-Code-Req-PubKey` | Sender Ed25519 public key |
+| `X-Code-Req-Remote-PubKey` | Receiver Ed25519 public key |
+| `X-Code-Req-Signature` | Ed25519 detached signature |
+| `X-Request-Origin` | `{allianceName}:{vaspEntityId}`. Example: `bonanza:bank-a` |
 
-```typescript
-import { createRequestHeaders } from '@transight/utils/signature';
+## Signature Data
 
-const headers = createRequestHeaders({
-  privateKey: process.env.TRANSIGHT_PRIVATE_KEY!,
-  vaspEntityId: 'my-vasp-id',
-  body: JSON.stringify(requestBody),
-  allianceName: 'transight',
-});
+```text
+SignatureData =
+  UTF8(X-Code-Req-Datetime)
+  + UTF8(JSON request body)
+  + BigEndian4Bytes(nonce)
+
+Signature = Ed25519.sign(SignatureData, senderPrivateKey)
 ```
 
-## Nonce 규칙
+## Environment Variables
 
-- 4바이트 Big-Endian unsigned integer로 변환
-- 100초 이내에 동일한 nonce 재사용 불가
-- 서버는 nonce 중복을 검증하고 거부할 수 있음
+| Variable | Purpose |
+| --- | --- |
+| `BONANZA_HUB_VASP_ENTITY_ID` | Hub VASP id for outbound relay |
+| `BONANZA_ALLIANCE_PREFIX` | `X-Request-Origin` prefix. Default `bonanza` |
+| `BONANZA_SIGNING_PRIVATE_KEY` | Ed25519 signing private key |
+| `BONANZA_SIGNING_PUBLIC_KEY` | Ed25519 public key |
+| `BONANZA_TTR_CALLBACK_BASE_URL` | Async callback base URL |
+
+Legacy aliases are still recognized for migration: `TRANSIGHT_VASP_ENTITY_ID`, `CODE_API_PRIVATE_KEY`, and `CODE_API_PUBLIC_KEY`.

@@ -1,102 +1,61 @@
-# VASP 연동 비용 분석
+# VASP 및 금융기관 연동 비용
 
-국내 VASP 및 금융기관이 TTR을 연동할 때의 개발 공수, 방식, 난이도를 분석합니다.
+이 문서는 redesign 이후 연동 난이도를 추정하기 위한 내부 메모입니다.
 
-## 요약
+## Summary
 
-| 대상 | 개발 공수 | 난이도 | 핵심 포인트 |
-|------|-----------|--------|-------------|
-| **빗썸** (CODE 사용 중) | ~1일 | ★☆☆☆☆ | 프로토콜 동일, 분기 1건 |
-| **업비트** (CODE+VV 사용 중) | ~1-2일 | ★★☆☆☆ | 멀티 솔루션 경험 있음 |
-| **금융기관** (신규) | ~1-2주 | ★★★☆☆ | 망분리/전용선 환경 설정이 주 공수 |
+| 대상 | 기본 방식 | 예상 난이도 | 주요 작업 |
+|------|-----------|-------------|-----------|
+| CodeVASP 경험이 있는 VASP | SDK 또는 API endpoint 추가 | 낮음 | Bonanza endpoint, public key 등록, routing 추가 |
+| 신규 VASP | Cloud API | 중간 | key 생성, payload 암호화, callback 구현 |
+| 금융기관 | Bonanza IDC 채널 | 중간 | 전용성 채널, API mapping, 위수탁/보안검토 |
+| 해외 VASP | Cloud API 또는 edge node | 중간 | public key 등록, encrypted relay, OwnerCheck 응답 |
+| 비의무 VASP | OwnerCheck 제한 연동 | 낮음-중간 | account owner check endpoint와 policy 합의 |
 
----
+## CodeVASP-Compatible VASP
 
-## 빗썸 (CODEVASP 사용 중)
+기존 CodeVASP 구조를 가진 VASP는 다음 요소를 재사용할 수 있습니다.
 
-::: tip 핵심
-TTR은 CODE VASP 프로토콜을 **완전 호환**합니다. 빗썸이 이미 구현한 Ed25519 서명, NaCl Box 암호화, IVMS101 로직을 **그대로 재사용**할 수 있습니다.
-:::
+| Reusable | Notes |
+|----------|-------|
+| Ed25519 signing key | request signing과 registry key 관리에 사용 |
+| Ed25519 to X25519 derivation | encrypted payload 생성에 사용 |
+| IVMS101 payload builder | Travel Rule 본 검증에 사용 |
+| beneficiary callback | `transfer-auth/incoming` 또는 partner endpoint로 mapping |
 
-### 빗썸이 변경해야 할 것
+추가 작업은 보통 다음 정도입니다.
 
-```
-1. TTR Hub API URL 추가 (설정 1줄)
-2. TTR Hub Ed25519 공개키 등록 (설정 1줄)
-3. VASP 라우팅 분기 추가 ("이 VASP는 TTR 경유")
-4. 수신 TR webhook 설정 (TTR→빗썸)
-```
+1. Bonanza TTR endpoint 등록
+2. VASP public key 등록 및 rotation 절차 합의
+3. outbound routing 분기 추가
+4. OwnerCheck를 사용할 경우 별도 endpoint 또는 handler 추가
 
-### 빗썸이 변경하지 않아도 되는 것
+## Financial Institutions
 
-```
-✅ 기존 CODEVASP 코드 — 그대로 유지
-✅ Ed25519 서명 로직 — 동일
-✅ NaCl Box 암호화 — 동일
-✅ IVMS101 포맷 — 동일
-✅ 기존 CODE 연결 — 해지 불필요
-```
+금융기관은 VASP 내부 컨테이너 설치나 해외 SaaS 직접 통신보다 Bonanza IDC 채널을 기본 제안으로 둡니다.
 
-### 프로토콜 비교
+| Work Item | Notes |
+|-----------|-------|
+| Network channel | 전용회선, VPN/IPsec, mTLS 중 기관 보안정책에 맞게 선택 |
+| Contract boundary | 개인정보 처리 위수탁, 재위탁, 접근통제, 보관기간 명시 |
+| Payload mapping | 기존 원화입출금/VAN interface 수준의 request mapping |
+| Audit evidence | 요청, routing, result, txHash, operator action metadata |
+| Security review | Bonanza IDC, key management, log masking, 장애 대응 절차 |
 
-| 항목 | CODEVASP | TTR | 차이 |
-|------|----------|-----|------|
-| 인증 헤더 | Ed25519 6종 | Ed25519 6종 | **동일** |
-| 암호화 | NaCl Box | NaCl Box | **동일** |
-| 키 교환 | Ed25519→Curve25519 | Ed25519→Curve25519 | **동일** |
-| IVMS101 | v2020 | v2020 | **동일** |
-| 요청 포맷 | JSON | JSON | **동일** |
-| 응답 | verified/denied | verified/denied | **동일** (kyt, adapter 필드 추가 — 무시 가능) |
+금융기관의 개발 부담은 암호화 라이브러리 도입보다 보안심사와 망연계 절차가 더 큰 비중을 차지할 가능성이 높습니다.
 
-### CODEVASP 동의 필요?
+## OwnerCheck Cost
 
-::: info
-TTR은 CODEVASP Hub를 경유하지 않고 빗썸과 **직접 P2P 연결**합니다. 따라서 CODEVASP의 동의가 기술적으로 **불필요**합니다. 빗썸은 CODE 계약을 유지하면서 TTR도 병행할 수 있습니다.
-:::
+OwnerCheck는 새 기능이므로 정책 합의가 필요합니다.
 
-### 영업 메시지
+| Topic | Decision Needed |
+|-------|-----------------|
+| Name normalization | 한글, 영문, 띄어쓰기, 법인명 비교 방식 |
+| Date of birth | `YYYYMMDD`, 외국인 식별자, 법인 설립일 처리 |
+| Address ownership | 주소, memo/tag, chain별 주소 format |
+| Response vocabulary | `matched`, `not_matched`, `insufficient_information`, `manual_review` |
+| Privacy mode | encrypted payload v1, salted hash 또는 PSI v2 검토 |
 
-> 빗썸님, 지금 쓰시는 CODEVASP 코드 그대로 두시면 됩니다. TTR이 같은 프로토콜로 연결하니까, 설정 하나 추가하시면 국내 금융기관·해외 VASP까지 TR/PII Verification 커버리지가 확장됩니다. 개발 공수는 1일 이내입니다.
+## Sales Message
 
----
-
-## 업비트 (CODEVASP + VerifyVASP 사용 중)
-
-업비트는 이미 CODE + VV 2개 솔루션을 병행 중이므로, 멀티 솔루션 구조에 익숙합니다.
-
-- CODE 호환이므로 빗썸과 동일 수준의 공수
-- 기존 멀티 솔루션 라우팅 로직에 TTR 분기만 추가
-- VV 엔클레이브와 무관하게 TTR은 별도 채널
-
----
-
-## 금융기관 (신규 연동)
-
-금융기관은 기존 TR 솔루션이 없으므로, TTR이 첫 번째이자 유일한 TR Gateway가 됩니다.
-
-### 주요 작업
-
-| 작업 | 공수 | 설명 |
-|------|------|------|
-| 보안 채널 구성 | 3-5일 | 전용선/VPN/mTLS |
-| Ed25519 키 생성·관리 | 1일 | HSM 또는 소프트웨어 키 관리 |
-| NaCl Box 라이브러리 도입 | 1일 | libsodium 등 |
-| IVMS101 payload 생성 | 2-3일 | 내부 KYC DB 연동 |
-| TTR API 연동 | 2-3일 | transfer-auth, result, finish |
-| 내부 워크플로우 | 2-3일 | 승인/거절/수동심사 연동 |
-| 테스트 | 2-3일 | E2E 테스트, 보안 검증 |
-
-::: warning 핵심 공수 포인트
-금융기관 연동의 주된 공수는 **코딩 난이도**가 아니라 **망분리/전용선/보안 인프라** 환경 구성입니다. TTR은 이미 하나은행과 전용선을 갖추고 있어, 유사 환경 구축 경험을 보유하고 있습니다.
-:::
-
-### TTR의 강점
-
-기존 TR 솔루션(CODEVASP, VerifyVASP)이 금융기관에 직접 연결하기 어려운 이유:
-
-| 이슈 | CODEVASP / VerifyVASP | TTR |
-|------|----------------------|-----|
-| 망분리 | HTTPS 필수 → 금융기관 정보보호 위반 가능 | 전용선/VPN/mTLS 지원 |
-| Docker enclave | VV가 Docker enclave 설치 요구 → 금융사 보안 불가 | 서버 사이드 처리, 클라이언트 설치 없음 |
-| PII 처리 | 평문 전달 필요한 구간 존재 | Hub 비열람 구조 (NaCl Box / Curve25519 E2E) |
-| 금융기관 경험 | VASP 중심 설계 | 전자금융보조업자/VAN사로서 금융기관 인프라 기구축 |
+금융기관에는 "해외 SaaS 직접연동을 대신하는 국내 운영형 Travel Rule Gateway"로 설명합니다. VASP에는 "기존 CodeVASP pipeline에 가까운 public key relay와 OwnerCheck extension"으로 설명합니다.

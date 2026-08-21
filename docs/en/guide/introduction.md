@@ -1,56 +1,38 @@
 # Introduction
 
-## What is TranSight TR?
+Bonanza TTR is a Travel Rule gateway for financial institutions and VASPs that need to exchange digital-asset transfer compliance data safely.
 
-**TranSight TR** is an **asymmetric bridge-based Travel Rule solution** designed for Virtual Asset Service Providers (VASPs) and financial institutions.
+As of the 2026-08 redesign, Bonanza TTR is no longer positioned as a hub that directly adapts every external Travel Rule network. The baseline is a Bonanza-operated public-key directory and encrypted relay based on the CodeVASP architecture.
 
-While existing TR solutions only allow communication between VASPs using the same protocol, TranSight TR connects institutions with different security requirements and protocols into a single network through its **asymmetric bridge architecture**.
+## Core Roles
 
-## Why TranSight TR?
+| Role | Description |
+| --- | --- |
+| Public Key Directory | Manages connected VASP Ed25519 public keys, endpoints, channels, and capabilities. |
+| Travel Rule Relay | Relays IVMS101 payloads encrypted by the originator for the beneficiary VASP. |
+| Financial Institution Gateway | Supports IDC ingress, leased lines, mTLS, VPN/IPsec, and channel encryption. |
+| OwnerCheck | Provides Identical Account Owner Verification as a separate API. |
+| KYT Gate | Blocks risky transfers before Travel Rule payload relay. |
+| Audit | Records transfer, owner check, key rotation, and routing metadata. |
 
-### 1. Asymmetric Bridge
+## Non-Goals
 
-Security compliance requirements vary across different financial institutions. Rather than forcing a single rigid protocol, TranSight TR provides tailored connection options based on the preferred security channel of each financial institution.
+- Do not auto-verify transfers without a beneficiary VASP.
+- Do not proceed without an active beneficiary public key.
+- Do not convert `pending` to `verified`.
+- Do not operate GTR, Sumsub, or VerifyVASP adapters as the core data plane.
+- Do not place OwnerCheck under the `/v1/code/*` namespace.
 
-| Target | Security Channel Options | Security Level & Features |
-|--------|--------------------------|---------------------------|
-| Crypto Exchanges | HTTPS + OAuth 2.0 | TLS 1.3 + Standardized AES-256 encrypted communication |
-| Financial Institutions | mTLS / IPSec VPN / Leased Line | Mutual certificate verification, encrypted tunnels, and physical isolation |
+## Basic Flow
 
-* **Customized Security Channels**: Seamlessly establish and integrate optimal security channel options—such as `mTLS + OAuth 2.0`, `IPSec VPN`, or `Leased Line`—aligned with the internal security standards of each financial institution.
-* **Leased Line Integration**: For financial institutions that have already established dedicated private lines, TranSight TR fully supports integration using their existing private leased line infrastructure.
-
-### 2. Atomic KYT Gate
-
+```text
+1. Originator queries beneficiary VASP public key.
+2. Originator encrypts IVMS101 payload for the beneficiary VASP.
+3. Originator calls POST /transfer-auth.
+4. Bonanza TTR runs KYT Gate.
+5. If blocked, relay stops and the result is denied.
+6. If passed or warned, Bonanza relays the encrypted payload to the beneficiary endpoint.
+7. Bonanza stores and returns verified / denied / pending.
 ```
-KYT Check → BLOCK? → PII transmission blocked (Privacy protection)
-           → PASS?  → Proceed with TR message delivery
-```
 
-Personal information (PII) is **never transmitted** before the KYT (Know Your Transaction) result is confirmed.
-
-### 3. Cross-Solution Compatibility
-
-TranSight TR guarantees full protocol-level interoperability with the following major domestic and global Travel Rule alliances:
-
-- **CODE VASP** — Domestic exchange interoperability via NaCl Box encryption and Ed25519 signatures
-- **Sumsub Hub** — Global compliance and TRUST (Travel Rule Universal Solution Technology) alliance compatibility via HMAC-SHA256 signatures
-- **VerifyVASP** — OpenVASP protocol-based integration support
-- **International VASPs** — Direct integration and custom protocol translation (Bybit, Bitget, etc.)
-
-## Core Technology Stack
-
-| Component | Technology |
-|-----------|-----------|
-| Encryption | NaCl Box (X25519 + XSalsa20-Poly1305) |
-| Signatures | Ed25519 |
-| Message Format | IVMS101 (FATF Standard) |
-| State Management | 8-stage State Machine |
-| Backend | Cloud Native Serverless (PostgreSQL + API Hub) |
-| Runtime | TypeScript (Deno / Node.js) |
-
-## Next Steps
-
-- [Architecture](./architecture.md) — Understand the system structure
-- [Quick Start](./quickstart.md) — Send your first TR in 5 minutes
-- [API Reference](/en/api/overview) — API endpoint reference
+OwnerCheck is separate from Travel Rule authorization. It is an enhanced risk mitigation tool for same-owner checks, non-obliged counterparties, or higher-risk flows.

@@ -1,189 +1,121 @@
 # VASP Registry
 
-Register and query Virtual Asset Service Providers (VASPs).
+VASP Registry is the Bonanza TTR public-key directory. It manages VASP endpoints, channels, health, capabilities, and Ed25519 public keys.
 
-## List VASPs
-
-Returns a list of all registered VASPs.
-
-### Request
+## List
 
 ```http
 GET /vasp-registry
 ```
 
-### Response — 200 OK
+Query:
 
-```json
-{
-  "vasps": [
-    {
-      "vaspEntityId": "test-exchange-a",
-      "vaspName": "Test Exchange A",
-      "vaspLegalName": "Test Exchange A Inc.",
-      "countryOfRegistration": "KR",
-      "allianceName": "code",
-      "health": "up",
-      "pubkeys": [
-        {
-          "pubkey": "dGVzdC1wdWJsaWMta2V5...",
-          "expiresAt": null
-        }
-      ]
-    }
-  ]
-}
-```
+| Query | Description |
+| --- | --- |
+| `alliance` | `bonanza`, `code`, `code-compatible`, etc. |
+| `country` | ISO country code |
+| `search` | Name search |
+| `wallet` | Candidate search based on transfer metadata |
 
-### Response Fields
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `vaspEntityId` | `string` | Unique VASP identifier |
-| `vaspName` | `string` | Display name |
-| `vaspLegalName` | `string` | Legal registered name |
-| `countryOfRegistration` | `string` | Registration country (ISO 3166-1 alpha-2) |
-| `allianceName` | `string` | Alliance (`code`, `verifyvasp`, `transight`, `direct`) |
-| `health` | `"up" \| "down"` | Connection status |
-| `pubkeys` | `array` | Ed25519 public keys |
-
----
-
-## Get VASP Details
-
-Returns detailed information for a specific VASP, including public keys.
-
-### Request
+## Get One
 
 ```http
 GET /vasp-registry?id={vaspEntityId}
 ```
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `id` | `string` | ✅ | VASP Entity ID |
+## Public Key Search
 
-### Response — 200 OK
+```http
+GET /vasp-registry/pubkey/{vaspEntityId}
+```
 
 ```json
 {
-  "id": "uuid-...",
-  "vasp_entity_id": "test-exchange-a",
-  "vasp_name": "Test Exchange A",
-  "vasp_legal_name": "Test Exchange A Inc.",
-  "country_of_registration": "KR",
-  "alliance_name": "code",
-  "channel_type": "HTTPS",
+  "vaspEntityId": "kakaopay",
+  "vaspName": "KakaoPay",
+  "allianceName": "bonanza",
   "health": "up",
-  "public_keys": [
+  "keys": [
     {
-      "id": "uuid-...",
-      "public_key": "dGVzdC1wdWJsaWMta2V5...",
+      "pubkey": "BASE64_ED25519_VERIFY_KEY",
       "algorithm": "Ed25519",
-      "expires_at": null,
-      "is_active": true,
-      "created_at": "2026-06-01T13:42:03Z"
+      "keyPurpose": "both",
+      "encryptionDerivation": "ed25519_to_x25519",
+      "encryptionSuite": "X25519-XSalsa20-Poly1305",
+      "kid": "kp-2026-01",
+      "version": 1,
+      "expiresAt": null,
+      "isActive": true
     }
   ]
 }
 ```
 
-### Response — 404 Not Found
-
-```json
-{
-  "error": "VASP not found",
-  "vaspEntityId": "unknown-vasp"
-}
-```
-
----
-
-## Register VASP
-
-Register a new VASP in the TranSight network.
-
-### Request
+## Register
 
 ```http
 POST /vasp-registry
-Content-Type: application/json
 ```
-
-### Request Body
 
 ```json
 {
-  "vasp_entity_id": "my-exchange",
-  "vasp_name": "My Exchange",
-  "vasp_legal_name": "My Exchange Co., Ltd.",
+  "vasp_entity_id": "kakaopay",
+  "vasp_name": "KakaoPay",
+  "vasp_legal_name": "Kakao Pay Corp.",
   "country_of_registration": "KR",
-  "alliance_name": "transight",
-  "endpoint_url": "https://my-exchange.com/tr-api",
-  "channel_type": "HTTPS",
-  "public_key": "Base64EncodedEd25519PublicKey==",
-  "public_key_expires_at": "2027-01-01T00:00:00Z"
-}
-```
-
-### Request Fields
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `vasp_entity_id` | `string` | ✅ | Unique identifier |
-| `vasp_name` | `string` | ✅ | Display name |
-| `vasp_legal_name` | `string` | ⬜ | Legal registered name |
-| `country_of_registration` | `string` | ✅ | ISO 3166-1 alpha-2 |
-| `alliance_name` | `string` | ⬜ | Default: `transight` |
-| `endpoint_url` | `string` | ✅ | TR API endpoint URL |
-| `channel_type` | `string` | ⬜ | `HTTPS` \| `mTLS` \| `VPN` \| `LEASED_LINE` |
-| `public_key` | `string` | ✅ | Ed25519 public key (Base64) |
-| `public_key_expires_at` | `string` | ⬜ | Key expiration (ISO8601) |
-
-### Response — 201 Created
-
-```json
-{
-  "success": true,
-  "vasp": {
-    "id": "uuid-...",
-    "vasp_entity_id": "my-exchange",
-    "vasp_name": "My Exchange",
-    ...
+  "alliance_name": "bonanza",
+  "endpoint_url": "https://partner.example.com/ttr",
+  "channel_type": "mTLS",
+  "public_key": "BASE64_ED25519_VERIFY_KEY",
+  "public_key_expires_at": null,
+  "key_purpose": "both",
+  "kid": "kp-2026-01",
+  "metadata": {
+    "capabilities": {
+      "travelRule": true,
+      "ownerCheck": true
+    }
   }
 }
 ```
 
-### Response — 409 Conflict
+## Update
+
+```http
+PUT /vasp-registry
+```
+
+Updatable fields:
+
+- `vasp_name`
+- `vasp_legal_name`
+- `country_of_registration`
+- `alliance_name`
+- `endpoint_url`
+- `channel_type`
+- `health`
+- `metadata`
+
+## Rotate Key
+
+```http
+POST /vasp-registry/rotate-key
+```
 
 ```json
 {
-  "error": "VASP entity ID already exists",
-  "vasp_entity_id": "my-exchange"
+  "vasp_entity_id": "kakaopay",
+  "new_public_key": "NEW_BASE64_ED25519_VERIFY_KEY",
+  "key_purpose": "both",
+  "kid": "kp-2026-02",
+  "expires_at": null
 }
 ```
 
-## Examples
+## Deprecated
 
-::: code-group
-
-```bash [List VASPs]
-curl -H "Authorization: Bearer $API_KEY" \
-  https://api.transight.io/v1/vasp-registry
+```http
+POST /vasp-registry/address-verify
 ```
 
-```bash [Register VASP]
-curl -X POST \
-  -H "Authorization: Bearer $API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "vasp_entity_id": "my-exchange",
-    "vasp_name": "My Exchange",
-    "country_of_registration": "KR",
-    "endpoint_url": "https://my-exchange.com/tr",
-    "public_key": "abc123=="
-  }' \
-  https://api.transight.io/v1/vasp-registry
-```
-
-:::
+This endpoint returns `ADDRESS_VERIFY_REPLACED`. Use [OwnerCheck](/en/api/owner-check) for identical account-owner verification.

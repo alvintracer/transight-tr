@@ -1,72 +1,50 @@
 # Architecture
 
-## System Overview
+Bonanza TTR consists of a public-key directory, encrypted relay, financial-institution ingress, KYT Gate, and audit storage.
 
-```
-┌──────────────────────────────────────────────────────────┐
-│                    TranSight Hub                         │
-│                                                          │
-│  ┌─────────┐   ┌──────────────┐   ┌─────────────────┐   │
-│  │ Request  │   │  Processing  │   │ Protocol Adapter│   │
-│  │   API    │──▶│    Engine    │──▶│     Layer       │   │
-│  └─────────┘   └──────┬───────┘   └────────┬────────┘   │
-│                       │                     │            │
-│                ┌──────▼───────┐             │            │
-│                │  Atomic KYT  │             │            │
-│                │    Gate      │             │            │
-│                └──────────────┘             │            │
-│                                             │            │
-│  ┌─────────┐   ┌──────────────┐            │            │
-│  │Response  │   │   IVMS101    │            │            │
-│  │   API    │◀──│  Validator   │            │            │
-│  └─────────┘   └──────────────┘            │            │
-└──────────────────────────────────┼──────────┘            │
-                                   │                       │
-                    ┌──────────────┼───────────────────┐   │
-                    │              ▼                    │   │
-                    │  ┌────────────────────────────┐   │   │
-                    │  │  Asymmetric Bridge Router  │   │   │
-                    │  └──┬──────┬──────┬──────┬───┘   │   │
-                    │     │      │      │      │       │   │
-                    │  ┌──▼──┐┌──▼──┐┌──▼──┐┌──▼──┐    │   │
-                    │  │HTTPS││mTLS ││ VPN ││Lease│    │   │
-                    │  └──┬──┘└──┬──┘└──┬──┘└──┬──┘    │   │
-                    └─────┼──────┼──────┼──────┼───────┘   │
-                          │      │      │      │           │
-                      Exchanges Digital Banks  Legacy      │
-                              Banks                        │
-                                                          │
-              ┌───────────────────────────────────────────┘
-              │ Protocol Adapters
-              ▼
-    ┌──────────────────────────────────────┐
-    │   CODE    │  VerifyVASP  │  Direct   │
-    │  Alliance │  Alliance   │ (Global)  │
-    └──────────────────────────────────────┘
+```text
+Financial Institution / VASP
+        |
+        | HTTPS / mTLS / VPN / leased line
+        v
+Bonanza TTR Gateway
+  - VASP Registry
+  - Public Key Directory
+  - Transfer Relay
+  - OwnerCheck Relay
+  - KYT Atomic Gate
+  - Status / Audit / TTL Queue
+        |
+        v
+Beneficiary VASP Endpoint
 ```
 
-## Data Flow
+## Components
 
-### Outgoing Transfer
+| Component | Role |
+| --- | --- |
+| `vasp-registry` | VASP registration, endpoint management, public-key search, key rotation |
+| `transfer-auth` | Outgoing and incoming Travel Rule relay |
+| `owner-check` | Identical Account Owner Verification relay |
+| `protocol-adapter` | Bonanza/CodeVASP-compatible outbound relay |
+| `kyt-gate` | KYT block decision before payload relay |
+| PostgreSQL | VASP, public key, transfer, owner check, and audit metadata |
 
-1. **VASP A** → TranSight Hub: `POST /transfer-auth` (encrypted IVMS101)
-2. Hub: KYT check (Atomic Gate)
-3. Hub: Discover beneficiary VASP (select Protocol Adapter)
-4. Hub → **VASP B**: Forward 1st IVMS101
-5. **VASP B** → Hub: Beneficiary verification result
-6. Hub → **VASP A**: Return authorization result
-7. **VASP A**: Execute blockchain transfer
-8. **VASP A** → Hub: `POST /transfer-result` (TXID)
+## Public Key Model
 
-### Incoming Transfer
+The canonical registry key is a Base64 Ed25519 verify key.
 
-1. Hub ← External solution: Receive TR message
-2. Hub: Protocol conversion (Protocol Adapter)
-3. Hub → **VASP B**: Forward via Response API
-4. **VASP B** → Hub: Beneficiary verification result
-5. Hub → External solution: Forward response
+```text
+public_keys.algorithm = Ed25519
+public_keys.key_purpose = both | signing | encryption
+metadata.encryptionDerivation = ed25519_to_x25519
+metadata.encryptionSuite = X25519-XSalsa20-Poly1305
+```
 
-## Next Steps
+Encryption clients derive an X25519/Curve25519 public key from the Ed25519 public key and encrypt the IVMS101 payload for the beneficiary.
 
-- [Asymmetric Bridge](./asymmetric-bridge.md) — Channel implementation details
-- [State Machine](./state-machine.md) — Transfer lifecycle
+## Boundary
+
+Bonanza TTR operates routing metadata and audit data. Plaintext IVMS101 PII should be encrypted by the originator for the beneficiary VASP before relay.
+
+OwnerCheck follows the same boundary. v1 uses encrypted payload relay; salted hash or PSI can be added later as a separate option.

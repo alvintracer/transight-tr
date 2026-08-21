@@ -1,72 +1,50 @@
 # 아키텍처
 
-## 전체 구조
+Bonanza TTR의 아키텍처는 공개키 디렉터리, 암호화 relay, 금융기관용 ingress, KYT Gate, 감사 저장소로 구성됩니다.
 
-```
-┌──────────────────────────────────────────────────────────┐
-│                    TranSight Hub                         │
-│                                                          │
-│  ┌─────────┐   ┌──────────────┐   ┌─────────────────┐   │
-│  │ Request  │   │  Processing  │   │ Protocol Adapter│   │
-│  │   API    │──▶│    Engine    │──▶│     Layer       │   │
-│  └─────────┘   └──────┬───────┘   └────────┬────────┘   │
-│                       │                     │            │
-│                ┌──────▼───────┐             │            │
-│                │  Atomic KYT  │             │            │
-│                │    Gate      │             │            │
-│                └──────────────┘             │            │
-│                                             │            │
-│  ┌─────────┐   ┌──────────────┐            │            │
-│  │Response  │   │   IVMS101    │            │            │
-│  │   API    │◀──│  Validator   │            │            │
-│  └─────────┘   └──────────────┘            │            │
-└──────────────────────────────────┼──────────┘            │
-                                   │                       │
-                    ┌──────────────┼───────────────────┐   │
-                    │              ▼                    │   │
-                    │  ┌────────────────────────────┐   │   │
-                    │  │    비대칭 브릿지 라우터      │   │   │
-                    │  └──┬──────┬──────┬──────┬───┘   │   │
-                    │     │      │      │      │       │   │
-                    │  ┌──▼──┐┌──▼──┐┌──▼──┐┌──▼──┐    │   │
-                    │  │HTTPS││mTLS ││ VPN ││전용선│    │   │
-                    │  └──┬──┘└──┬──┘└──┬──┘└──┬──┘    │   │
-                    └─────┼──────┼──────┼──────┼───────┘   │
-                          │      │      │      │           │
-                       거래소  디지털  은행   기구축은행      │
-                              은행                         │
-                                                          │
-              ┌───────────────────────────────────────────┘
-              │ 프로토콜 어댑터
-              ▼
-    ┌──────────────────────────────────────┐
-    │   CODE    │  VerifyVASP  │  Direct   │
-    │  Alliance │  Alliance   │  (해외)    │
-    └──────────────────────────────────────┘
+```text
+Financial Institution / VASP
+        |
+        | HTTPS / mTLS / VPN / leased line
+        v
+Bonanza TTR Gateway
+  - VASP Registry
+  - Public Key Directory
+  - Transfer Relay
+  - OwnerCheck Relay
+  - KYT Atomic Gate
+  - Status / Audit / TTL Queue
+        |
+        v
+Beneficiary VASP Endpoint
 ```
 
-## 데이터 흐름
+## 구성 요소
 
-### 출금 (Outgoing Transfer)
+| 구성 | 역할 |
+| --- | --- |
+| `vasp-registry` | VASP 등록, endpoint 관리, public key 조회, key rotation |
+| `transfer-auth` | 출금/입금 Travel Rule relay |
+| `owner-check` | 동일 계정주 확인 relay |
+| `protocol-adapter` | Bonanza/CodeVASP-compatible outbound relay |
+| `kyt-gate` | PII relay 전 KYT block 판단 |
+| PostgreSQL | VASP, public key, transfer, owner check, audit metadata 저장 |
 
-1. **VASP A** → TranSight Hub: `POST /transfer-auth` (암호화된 IVMS101)
-2. Hub: KYT 조회 (Atomic Gate)
-3. Hub: 수신 VASP 탐색 (Protocol Adapter 선택)
-4. Hub → **VASP B**: 1차 IVMS101 전달
-5. **VASP B** → Hub: 수신인 확인 결과
-6. Hub → **VASP A**: 인가 결과 반환
-7. **VASP A**: 블록체인 전송 실행
-8. **VASP A** → Hub: `POST /transfer-result` (TXID)
+## Public Key Model
 
-### 입금 (Incoming Transfer)
+Registry에 저장하는 canonical key는 Base64 Ed25519 verify key입니다.
 
-1. Hub ← 외부 솔루션: TR 메시지 수신
-2. Hub: 프로토콜 변환 (Protocol Adapter)
-3. Hub → **VASP B**: Response API로 전달
-4. **VASP B** → Hub: 수신인 확인 결과
-5. Hub → 외부 솔루션: 응답 전달
+```text
+public_keys.algorithm = Ed25519
+public_keys.key_purpose = both | signing | encryption
+metadata.encryptionDerivation = ed25519_to_x25519
+metadata.encryptionSuite = X25519-XSalsa20-Poly1305
+```
 
-## 다음 단계
+암호화 클라이언트는 Ed25519 public key에서 X25519/Curve25519 public key를 derive해 IVMS101 payload를 암호화합니다.
 
-- [비대칭 브릿지](./asymmetric-bridge.md) — 채널별 상세 구현
-- [상태 머신](./state-machine.md) — Transfer 라이프사이클
+## Status Boundary
+
+Bonanza TTR은 routing metadata와 감사 정보를 운영합니다. IVMS101 PII 원문은 송신 기관이 수신 VASP 공개키로 암호화한 뒤 전달합니다.
+
+OwnerCheck payload도 같은 원칙을 따릅니다. v1에서는 암호화 payload relay를 기본으로 하고, 향후 salted hash 또는 PSI 방식은 별도 확장으로 둡니다.

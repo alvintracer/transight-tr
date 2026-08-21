@@ -1,16 +1,26 @@
-# 상태 코드
+# Status Codes
 
-[상태 머신 가이드](/ko/guide/state-machine)의 상세 내용을 참조하세요.
+자세한 전이는 [State Machine](/ko/guide/state-machine)을 참고합니다.
 
-## Transfer 상태
+## Transfer Statuses
 
-| 상태 | 코드 | 최종 상태 | 설명 |
-|------|------|-----------|------|
-| 대기 | `wait` | ❌ | 수신 VASP 응답 대기 |
-| 인가 | `verified` | ❌ | 수신 VASP 인가 완료 |
-| 거부 | `denied` | ✅ | 수신 VASP 거부 |
-| 보류 | `pending` | ❌ | 블록체인 전송 전 |
-| 처리 중 | `processing` | ❌ | 블록체인 전송됨 |
-| 확인 대기 | `wait-confirmed` | ❌ | 마이닝됨, finality 미확보 |
-| 확인 완료 | `confirmed` | ❌ | 전송 완료 |
-| 취소 | `canceled` | ✅ | 전송 취소 |
+| Code | Terminal | Description |
+|------|----------|-------------|
+| `wait` | No | KYT 또는 수신 VASP 응답 대기 |
+| `verified` | No | 수신 VASP 검증 완료 |
+| `denied` | Yes | KYT, routing, 수신 VASP 정책상 거절 |
+| `pending` | No | 추가 검증 또는 운영 처리 중 |
+| `processing` | No | 온체인 전송 처리 중 |
+| `wait-confirmed` | No | 기록 이후 finality 대기 |
+| `confirmed` | Yes | txHash 보고 완료 |
+| `canceled` | Yes | 전송 취소 |
+
+## OwnerCheck Statuses
+
+| Code | Terminal | Description |
+|------|----------|-------------|
+| `pending` | No | 수신 VASP 응답 대기 |
+| `verified` | Yes | 동일 계정주로 확인 |
+| `denied` | Yes | 동일 계정주 불일치 또는 거절 |
+| `expired` | Yes | TTL 내 응답 없음 |
+| `failed` | Yes | routing 또는 시스템 오류 |
