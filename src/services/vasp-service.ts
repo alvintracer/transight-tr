@@ -37,7 +37,7 @@ export async function registerVasp(input: VaspRegistrationInput): Promise<VaspRe
       vasp_name: input.vasp_name,
       vasp_legal_name: input.vasp_legal_name,
       country_of_registration: input.country_of_registration,
-      alliance_name: input.alliance_name ?? 'transight',
+      alliance_name: input.alliance_name ?? 'bonanza',
       endpoint_url: input.endpoint_url,
       channel_type: input.channel_type ?? 'HTTPS',
     })
@@ -53,6 +53,12 @@ export async function registerVasp(input: VaspRegistrationInput): Promise<VaspRe
       vasp_id: vasp.id,
       public_key: input.public_key,
       algorithm: 'Ed25519',
+      key_purpose: input.key_purpose ?? 'both',
+      kid: input.kid ?? null,
+      metadata: {
+        encryptionDerivation: 'ed25519_to_x25519',
+        encryptionSuite: 'X25519-XSalsa20-Poly1305',
+      },
       expires_at: input.public_key_expires_at ?? null,
       is_active: true,
     });
@@ -66,7 +72,7 @@ export async function registerVasp(input: VaspRegistrationInput): Promise<VaspRe
     entity_id: vasp.id,
     details: {
       vasp_entity_id: input.vasp_entity_id,
-      alliance_name: input.alliance_name,
+      alliance_name: input.alliance_name ?? 'bonanza',
       channel_type: input.channel_type,
     },
   });
@@ -85,7 +91,7 @@ export async function getVaspByEntityId(entityId: string): Promise<VaspWithKeys 
     .select(`
       *,
       public_keys (
-        id, public_key, algorithm, expires_at, is_active, created_at
+        id, public_key, algorithm, key_purpose, kid, version, metadata, expires_at, is_active, created_at
       )
     `)
     .eq('vasp_entity_id', entityId)
@@ -141,6 +147,12 @@ export async function listVaspsCodeFormat(): Promise<VaspListResponse> {
       health,
       public_keys (
         public_key,
+        algorithm,
+        key_purpose,
+        kid,
+        version,
+        metadata,
+        is_active,
         expires_at
       )
     `)
@@ -159,7 +171,16 @@ export async function listVaspsCodeFormat(): Promise<VaspListResponse> {
       pubkeys: ((v.public_keys as Array<Record<string, unknown>>) ?? []).map(
         (pk: Record<string, unknown>) => ({
           pubkey: pk.public_key as string,
+          publicKey: pk.public_key as string,
+          algorithm: (pk.algorithm as 'Ed25519') ?? 'Ed25519',
+          keyPurpose: (pk.key_purpose as 'signing' | 'encryption' | 'both') ?? 'both',
+          encryptionDerivation: 'ed25519_to_x25519',
+          encryptionSuite: 'X25519-XSalsa20-Poly1305',
+          kid: pk.kid as string | null,
+          version: (pk.version as number | null) ?? 1,
           expiresAt: pk.expires_at as string,
+          isActive: pk.is_active as boolean,
+          metadata: (pk.metadata as Record<string, unknown>) ?? {},
         })
       ),
     })) as VaspInfo[],
@@ -222,6 +243,7 @@ export async function getActivePublicKey(entityId: string): Promise<string | nul
     .select('public_key')
     .eq('vasp_id', vasp.id)
     .eq('is_active', true)
+    .in('key_purpose', ['both', 'encryption'])
     .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
     .order('created_at', { ascending: false })
     .limit(1);
@@ -235,7 +257,8 @@ export async function getActivePublicKey(entityId: string): Promise<string | nul
 export async function rotatePublicKey(
   entityId: string,
   newPublicKey: string,
-  expiresAt?: string
+  expiresAt?: string,
+  keyPurpose: 'signing' | 'encryption' | 'both' = 'both'
 ): Promise<void> {
   const supabase = getServiceClient();
 
@@ -261,6 +284,11 @@ export async function rotatePublicKey(
       vasp_id: vasp.id,
       public_key: newPublicKey,
       algorithm: 'Ed25519',
+      key_purpose: keyPurpose,
+      metadata: {
+        encryptionDerivation: 'ed25519_to_x25519',
+        encryptionSuite: 'X25519-XSalsa20-Poly1305',
+      },
       expires_at: expiresAt ?? null,
       is_active: true,
     });

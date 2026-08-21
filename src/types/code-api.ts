@@ -1,25 +1,28 @@
 /**
- * CODE VASP API 요청/응답 타입 정의
- * @see reference/codevasp-skills/skills/codevasp-core/references/api/
+ * CodeVASP-compatible API types plus Bonanza TTR extensions.
+ *
+ * Source baseline:
+ * - CodeVASP public key registry stores Base64 Ed25519 verify keys.
+ * - Request signatures use Ed25519.
+ * - Payload encryption derives X25519/Curve25519 keys from the Ed25519 keys.
  */
 
 // ============================================================
 // HTTP Header Types
 // ============================================================
 
-/** CODE VASP 필수 요청 헤더 */
 export interface CodeVaspRequestHeaders {
-  /** ISO8601 UTC datetime (e.g., "2024-03-04T15:10Z") */
+  /** ISO8601 UTC datetime, e.g. "2024-03-04T15:10Z" */
   'X-Code-Req-Datetime': string;
-  /** 랜덤 논스 (100초 이내 중복 불가) */
+  /** Random nonce. Reuse should be rejected by the receiver. */
   'X-Code-Req-Nonce': string;
-  /** 자신의 Ed25519 공개키 (Base64) */
+  /** Sender Ed25519 verify key, Base64. */
   'X-Code-Req-PubKey': string;
-  /** 수신 VASP 공개키 (Base64, 암호화 API에서만 필수) */
+  /** Receiver Ed25519 verify key, Base64. Required for encrypted APIs. */
   'X-Code-Req-Remote-PubKey'?: string;
-  /** Ed25519 서명 (Base64) */
+  /** Ed25519 detached signature, Base64. */
   'X-Code-Req-Signature': string;
-  /** 솔루션명:엔티티ID (e.g., "code:coinone") */
+  /** Network namespace and VASP id, e.g. "bonanza:kakaopay". */
   'X-Request-Origin': string;
 }
 
@@ -27,38 +30,55 @@ export interface CodeVaspRequestHeaders {
 // VASP Discovery API
 // ============================================================
 
-/** VASP 공개키 정보 */
+export type PublicKeyPurpose = 'signing' | 'encryption' | 'both';
+
 export interface VaspPubkey {
-  pubkey: string;       // Base64 Ed25519 verify key
-  expiresAt: string;    // ISO8601 UTC
+  /** Base64 Ed25519 verify key. */
+  pubkey: string;
+  /** Alias for SDKs that prefer camelCase field names. */
+  publicKey?: string;
+  algorithm: 'Ed25519';
+  keyPurpose: PublicKeyPurpose;
+  encryptionDerivation: 'ed25519_to_x25519';
+  encryptionSuite: 'X25519-XSalsa20-Poly1305';
+  kid?: string | null;
+  version?: number;
+  expiresAt?: string | null;
+  isActive?: boolean;
+  metadata?: Record<string, unknown>;
 }
 
-/** VASP 정보 (VASP List Search 응답) */
 export interface VaspInfo {
   health: 'up' | 'down';
   vaspEntityId: string;
   vaspName: string;
-  vaspLegalName: string;
-  countryOfRegistration: string;
+  vaspLegalName?: string | null;
+  countryOfRegistration?: string | null;
   allianceName: string;
+  channelType?: 'HTTPS' | 'mTLS' | 'VPN' | 'LEASED_LINE' | string;
+  endpointUrl?: string | null;
+  metadata?: Record<string, unknown>;
   pubkeys: VaspPubkey[];
 }
 
-/** GET /v1/code/vasps 응답 */
 export interface VaspListResponse {
   vasps: VaspInfo[];
+  total?: number;
 }
 
-/** GET /v1/code/pubkey/{vaspEntityId} 응답 */
+/** GET /vasp-registry/pubkey/{vaspEntityId} */
 export interface PublicKeySearchResponse {
-  pubkeys: VaspPubkey[];
+  vaspEntityId: string;
+  vaspName?: string;
+  allianceName?: string;
+  health?: 'up' | 'down' | string;
+  keys: VaspPubkey[];
 }
 
 // ============================================================
 // Wallet Search API
 // ============================================================
 
-/** POST /v1/code/address/search 요청 */
 export interface SearchVaspByWalletRequest {
   currency: string;
   address: string;
@@ -66,7 +86,6 @@ export interface SearchVaspByWalletRequest {
   network?: string;
 }
 
-/** Search VASP by Wallet 결과 */
 export interface SearchVaspByWalletResult {
   vaspEntityId: string;
   vaspName: string;
@@ -74,129 +93,168 @@ export interface SearchVaspByWalletResult {
 }
 
 // ============================================================
-// Virtual Asset Address Search API
+// Address Verification Compatibility
 // ============================================================
 
-/** POST /v1/code/address/verify/{vaspEntityId} 요청 */
+/**
+ * Legacy CodeVASP-compatible address verification shape.
+ * In Bonanza TTR this should be replaced by OwnerCheck for same-owner checks.
+ */
 export interface VirtualAssetAddressSearchRequest {
   currency: string;
   address: string;
   tag?: string;
   network?: string;
-  payload: string; // 암호화된 IVMS101 (Beneficiary 이름만)
-}
-
-/** Virtual Asset Address Search 응답 */
-export interface VirtualAssetAddressSearchResponse {
-  result: 'verified' | 'denied';
-  reasonType?: string;
-  reasonMsg?: string;
-}
-
-// ============================================================
-// Asset Transfer Authorization API (핵심)
-// ============================================================
-
-/** POST /v1/code/transfer/{BeneficiaryVaspEntityId} 요청 */
-export interface AssetTransferAuthRequest {
-  /** UUID v4 — 고유 전송 추적 ID */
-  transferId: string;
-  /** 가상자산 심볼 (case insensitive, e.g., "BTC") */
-  currency: string;
-  /** 전송 수량 (수수료 제외 실제 전송량) */
-  amount: string;
-  /** 취득가액 (국세청 요구, 현재 미사용) */
-  historicalCost?: string;
-  /** 법정화폐 환산 금액 (수량 × 가격) */
-  tradePrice: string;
-  /** 법정화폐 코드 (ISO 4217: KRW, USD, EUR, ...) */
-  tradeCurrency: string;
-  /** 트래블룰 임계값 초과 여부 */
-  isExceedingThreshold: boolean | string;
-  /** OriginatingVASP 정보 (payload 내 값 덮어쓰기) */
-  originatingVasp?: Record<string, unknown>;
-  /** 암호화된 IVMS101 payload (Base64 string) */
   payload: string;
-  /** 수신인 지갑 주소 (상호운용성) */
-  address?: string;
-  /** Tag/Memo (XRP 등) */
-  tag?: string;
-  /** 네트워크 이름 (멀티네트워크 코인) */
-  network?: string;
 }
 
-/** Asset Transfer Authorization 응답 */
-export interface AssetTransferAuthResponse {
-  /** 인가 결과 */
-  result: 'verified' | 'denied';
-  /** 거부 사유 타입 */
+export interface VirtualAssetAddressSearchResponse {
+  result: 'verified' | 'denied' | 'pending';
   reasonType?: TransferDenialReason;
-  /** 거부 사유 메시지 */
   reasonMsg?: string;
-  /** 전송 추적 ID */
-  transferId: string;
-  /** 수신 VASP 정보 */
-  beneficiaryVasp?: Record<string, unknown>;
-  /** 암호화된 IVMS101 응답 payload */
-  payload?: string;
 }
 
-/** 전송 거부 사유 */
+// ============================================================
+// Asset Transfer Authorization API
+// ============================================================
+
+export interface AssetTransferAuthRequest {
+  transferId: string;
+  currency: string;
+  amount: string;
+  historicalCost?: string;
+  tradePrice?: string;
+  tradeCurrency?: string;
+  isExceedingThreshold?: boolean | string;
+  originatingVasp?: Record<string, unknown>;
+  payload: string;
+  address?: string;
+  tag?: string;
+  network?: string;
+  originatorVaspEntityId?: string;
+  beneficiaryVaspEntityId: string;
+  adapterOptions?: Record<string, unknown>;
+}
+
+export interface AssetTransferAuthResponse {
+  result: 'verified' | 'denied' | 'pending';
+  reasonType?: TransferDenialReason | string;
+  reasonMsg?: string;
+  transferId: string;
+  beneficiaryVasp?: {
+    vaspEntityId: string;
+    vaspName: string;
+  };
+  payload?: unknown;
+  kyt?: {
+    decision?: string;
+    riskScore?: number;
+  };
+  adapter?: {
+    protocol: string;
+    latencyMs: number;
+  };
+}
+
 export type TransferDenialReason =
-  | 'NOT_FOUND_ADDRESS'       // 지갑 주소 없음
-  | 'NOT_SUPPORTED_SYMBOL'    // 지원하지 않는 코인
-  | 'NOT_KYC_USER'            // KYC 미완료 사용자
-  | 'INPUT_NAME_MISMATCHED'   // 수신인 이름 불일치
-  | 'DOB_MISMATCHED'          // 생년월일 불일치
-  | 'SANCTION_LIST'           // 제재 대상
-  | 'LACK_OF_INFORMATION'     // 정보 부족
-  | 'UNKNOWN';                // 기타
+  | 'NOT_FOUND_ADDRESS'
+  | 'NOT_SUPPORTED_SYMBOL'
+  | 'NOT_KYC_USER'
+  | 'INPUT_NAME_MISMATCHED'
+  | 'DOB_MISMATCHED'
+  | 'SANCTION_LIST'
+  | 'LACK_OF_INFORMATION'
+  | 'KYT_BLOCK'
+  | 'VASP_NOT_FOUND'
+  | 'VASP_KEY_NOT_FOUND'
+  | 'VASP_HEALTH_DOWN'
+  | 'RELAY_ERROR'
+  | 'UNKNOWN';
 
 // ============================================================
-// Report Transfer Result API
+// OwnerCheck API
 // ============================================================
 
-/** POST /v1/code/transfer/result/{BeneficiaryVaspEntityId} 요청 */
+export interface OwnerCheckPolicy {
+  requireDobMatch?: boolean;
+  nameMatchingPolicy?: 'codevasp-default' | 'strict' | 'local';
+  dobFormat?: 'YYYY-MM-DD' | 'YYYYMMDD' | 'provider-specific';
+  [key: string]: unknown;
+}
+
+export interface OwnerCheckRequest {
+  ownerCheckId: string;
+  currency: string;
+  address: string;
+  tag?: string;
+  network?: string;
+  /** Encrypted or hashed same-owner verification payload. */
+  payload: string;
+  originatorVaspEntityId?: string;
+  beneficiaryVaspEntityId: string;
+  policy?: OwnerCheckPolicy;
+}
+
+export interface OwnerCheckResponse {
+  ownerCheckId: string;
+  result: 'verified' | 'denied' | 'pending';
+  reasonType?: TransferDenialReason | string;
+  reasonMsg?: string;
+  beneficiaryVasp?: {
+    vaspEntityId: string;
+    vaspName: string;
+  };
+  payload?: unknown;
+  adapter?: {
+    protocol: string;
+    latencyMs: number;
+  };
+}
+
+export interface OwnerCheckStatusResponse {
+  ownerCheckId: string;
+  status: 'pending' | 'verified' | 'denied' | 'error' | 'canceled';
+  currency: string;
+  address: string;
+  tag?: string | null;
+  network?: string | null;
+  result?: 'verified' | 'denied' | 'pending';
+  reasonType?: string | null;
+  reasonMsg?: string | null;
+  policy?: OwnerCheckPolicy;
+  metadata?: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ============================================================
+// Transfer Result / Status APIs
+// ============================================================
+
 export interface ReportTransferResultRequest {
   transferId: string;
-  txid: string;    // 온체인 TX Hash
-  vout?: string;   // UTXO 기반 체인의 vout index
+  txid: string;
+  vout?: string;
 }
 
-/** Report Transfer Result 응답 */
 export interface ReportTransferResultResponse {
   result: 'success' | 'fail';
   reasonMsg?: string;
 }
 
-// ============================================================
-// Transaction Status Search API
-// ============================================================
-
-/** GET /v1/code/transfer/status/{transferId} 응답 */
 export interface TransactionStatusResponse {
   transferId: string;
   status: string;
   txid?: string;
 }
 
-// ============================================================
-// Finish Transfer API
-// ============================================================
-
-/** POST /v1/code/transfer/finish/{transferId} 요청 */
 export interface FinishTransferRequest {
   transferId: string;
-  result: 'canceled';
+  result?: 'canceled';
   reasonType?: string;
   reasonMsg?: string;
 }
 
-// ============================================================
-// Health Check API
-// ============================================================
-
-/** GET /v1/code/health 응답 */
 export interface HealthCheckResponse {
   status: 'up' | 'down';
   timestamp: string;

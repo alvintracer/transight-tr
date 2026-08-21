@@ -1,34 +1,126 @@
 -- ==========================================================
--- TranSight TR — Seed Data (개발/테스트용)
+-- Bonanza TTR seed data for local development
 -- ==========================================================
 
--- 1. TranSight Hub 자체 등록
-INSERT INTO vasps (vasp_entity_id, vasp_name, vasp_legal_name, country_of_registration, alliance_name, endpoint_url, channel_type, health)
+INSERT INTO vasps (
+  vasp_entity_id,
+  vasp_name,
+  vasp_legal_name,
+  country_of_registration,
+  alliance_name,
+  endpoint_url,
+  channel_type,
+  health,
+  metadata
+)
 VALUES (
-  'transight-hub',
-  'TranSight Hub',
+  'bonanza-hub',
+  'Bonanza TTR Gateway',
   'Bonanza Factory Co., Ltd.',
   'KR',
-  'transight',
+  'bonanza',
   'http://localhost:54321/functions/v1',
   'HTTPS',
-  'up'
-);
+  'up',
+  '{"capabilities":{"travelRule":true,"ownerCheck":true}}'
+)
+ON CONFLICT (vasp_entity_id) DO UPDATE SET
+  vasp_name = EXCLUDED.vasp_name,
+  vasp_legal_name = EXCLUDED.vasp_legal_name,
+  alliance_name = EXCLUDED.alliance_name,
+  endpoint_url = EXCLUDED.endpoint_url,
+  channel_type = EXCLUDED.channel_type,
+  health = EXCLUDED.health,
+  metadata = EXCLUDED.metadata;
 
--- 2. 테스트용 VASP (CODE 호환 거래소 시뮬레이션)
-INSERT INTO vasps (vasp_entity_id, vasp_name, vasp_legal_name, country_of_registration, alliance_name, channel_type, health)
+INSERT INTO vasps (
+  vasp_entity_id,
+  vasp_name,
+  vasp_legal_name,
+  country_of_registration,
+  alliance_name,
+  endpoint_url,
+  channel_type,
+  health,
+  metadata
+)
 VALUES
-  ('test-exchange-a', 'Test Exchange A', 'Test Exchange A Inc.', 'KR', 'code', 'HTTPS', 'up'),
-  ('test-exchange-b', 'Test Exchange B', 'Test Exchange B Co., Ltd.', 'KR', 'code', 'HTTPS', 'up'),
-  ('test-bank-c', 'Test Bank C', 'Test Bank C', 'KR', 'transight', 'LEASED_LINE', 'up');
+  (
+    'test-exchange-a',
+    'Test Exchange A',
+    'Test Exchange A Inc.',
+    'KR',
+    'code-compatible',
+    'http://localhost:54321/functions/v1',
+    'HTTPS',
+    'up',
+    '{"capabilities":{"travelRule":true,"ownerCheck":true}}'
+  ),
+  (
+    'test-exchange-b',
+    'Test Exchange B',
+    'Test Exchange B Co., Ltd.',
+    'KR',
+    'bonanza',
+    'http://localhost:54321/functions/v1',
+    'HTTPS',
+    'up',
+    '{"capabilities":{"travelRule":true,"ownerCheck":true}}'
+  ),
+  (
+    'test-bank-c',
+    'Test Bank C',
+    'Test Bank C',
+    'KR',
+    'bonanza',
+    'http://localhost:54321/functions/v1',
+    'LEASED_LINE',
+    'up',
+    '{"capabilities":{"travelRule":true,"ownerCheck":true},"deployment":"idc"}'
+  )
+ON CONFLICT (vasp_entity_id) DO UPDATE SET
+  vasp_name = EXCLUDED.vasp_name,
+  vasp_legal_name = EXCLUDED.vasp_legal_name,
+  alliance_name = EXCLUDED.alliance_name,
+  endpoint_url = EXCLUDED.endpoint_url,
+  channel_type = EXCLUDED.channel_type,
+  health = EXCLUDED.health,
+  metadata = EXCLUDED.metadata;
 
--- 3. 테스트용 공개키 (실제 Ed25519 키쌍은 아님, 개발 테스트용 placeholder)
-INSERT INTO public_keys (vasp_id, public_key, algorithm, is_active)
-SELECT id, 'dGVzdC1wdWJsaWMta2V5LXBsYWNlaG9sZGVy', 'Ed25519', true
+INSERT INTO public_keys (
+  vasp_id,
+  public_key,
+  algorithm,
+  key_purpose,
+  is_active,
+  metadata
+)
+SELECT
+  id,
+  'dGVzdC1wdWJsaWMta2V5LXBsYWNlaG9sZGVy',
+  'Ed25519',
+  'both',
+  true,
+  '{"encryptionDerivation":"ed25519_to_x25519","encryptionSuite":"X25519-XSalsa20-Poly1305"}'
 FROM vasps
-WHERE vasp_entity_id = 'test-exchange-a';
+WHERE vasp_entity_id = 'test-exchange-a'
+ON CONFLICT DO NOTHING;
 
-INSERT INTO public_keys (vasp_id, public_key, algorithm, is_active)
-SELECT id, 'dGVzdC1wdWJsaWMta2V5LXBsYWNlaG9sZGVyMg==', 'Ed25519', true
+INSERT INTO public_keys (
+  vasp_id,
+  public_key,
+  algorithm,
+  key_purpose,
+  is_active,
+  metadata
+)
+SELECT
+  id,
+  'dGVzdC1wdWJsaWMta2V5LXBsYWNlaG9sZGVyMg==',
+  'Ed25519',
+  'both',
+  true,
+  '{"encryptionDerivation":"ed25519_to_x25519","encryptionSuite":"X25519-XSalsa20-Poly1305"}'
 FROM vasps
-WHERE vasp_entity_id = 'test-exchange-b';
+WHERE vasp_entity_id = 'test-exchange-b'
+ON CONFLICT DO NOTHING;

@@ -1,6 +1,6 @@
 # TranSight TR Context Index
 
-이 문서는 TranSight TR 저장소 안의 AI 업무 위키 진입점입니다.
+This vault is the operating context for the TranSight TR / Bonanza Travel Rule Gateway project.
 
 ## Root Docs
 
@@ -15,56 +15,59 @@
 
 - [[docs/TRANSIGHT_PROJECT_CONTEXT]]
 - [[docs/ttr-api-specification]]
-- [[docs/ko/index]]
-- [[docs/ko/guide/architecture]]
-- [[docs/ko/guide/kyt-gate]]
-- [[docs/ko/api/gtr-adapter]]
+- [[AI-Sessions/wiki/design/2026-08-21-ttr-codevasp-core-redesign-plan]]
 
 ## Core Code Map
 
-- `supabase/functions/transfer-auth/index.ts`
-- `supabase/functions/transfer-response/index.ts`
+- `supabase/functions/health/index.ts`
 - `supabase/functions/vasp-registry/index.ts`
+- `supabase/functions/transfer-auth/index.ts`
+- `supabase/functions/owner-check/index.ts`
+- `supabase/functions/transfer-response/index.ts`
 - `supabase/functions/_shared/protocol-adapter.ts`
 - `supabase/functions/_shared/kyt-gate.ts`
 - `supabase/functions/_shared/security.ts`
-- `src/services/transfer-service.ts`
+- `src/types/code-api.ts`
 - `src/types/transfer.ts`
-
-## Wiki Structure
-
-- `AI-Sessions/raw/`: 원본 자료 보관
-- `AI-Sessions/conversations/`: handoff 및 세션 인수인계
-- `AI-Sessions/wiki/sources/`: 문서와 코드 기준선 요약
-- `AI-Sessions/wiki/concepts/`: 반복 개념과 프레임워크
-- `AI-Sessions/wiki/decisions/`: 구조와 운영 결정
-- `AI-Sessions/wiki/errors/`: 실패 사례와 리스크
-- `AI-Sessions/wiki/projects/`: 프로젝트 맥락과 현재 상태
-- `AI-Sessions/wiki/design/`: 아키텍처와 설계 요약
-- `AI-Sessions/wiki/dev-tasks/`: 구현 진입점과 코드 맵
+- `src/types/vasp.ts`
 
 ## Current Project Docs
 
 - [[AI-Sessions/wiki/projects/transight-tr-current-overview]]
 - [[AI-Sessions/wiki/projects/transight-tr-june-2026-delivery-status]]
+- [[AI-Sessions/wiki/projects/2026-08-05-vv-travel-rule-gateway-regulatory-architecture]]
 - [[AI-Sessions/wiki/design/transight-tr-runtime-architecture]]
+- [[AI-Sessions/wiki/design/2026-08-09-vv-enclave-deployment-options]]
+- [[AI-Sessions/wiki/design/2026-08-11-kakaopay-vv-dmz-direct-integration]]
+- [[AI-Sessions/wiki/design/2026-08-21-ttr-codevasp-core-redesign-plan]]
 - [[AI-Sessions/wiki/dev-tasks/transight-tr-core-code-map]]
+
+## Concepts
+
+- [[AI-Sessions/wiki/concepts/2026-08-12-vv-verifyname-protocol-interpretation]]
 
 ## Decisions
 
 - [[AI-Sessions/wiki/decisions/2026-06-13-contexthub-governance]]
 - [[AI-Sessions/wiki/decisions/2026-06-13-transight-runtime-baseline]]
 - [[AI-Sessions/wiki/decisions/2026-06-24-phase-7-implementation-baseline]]
+- [[AI-Sessions/wiki/decisions/2026-08-07-vv-bf-managed-enclave-idc-baseline]]
+- [[AI-Sessions/wiki/decisions/2026-08-10-vv-no-bf-data-plane-pivot]]
+- [[AI-Sessions/wiki/decisions/2026-08-11-vv-swift-mt-precedent-applicability]]
 
 ## Sources
 
 - [[AI-Sessions/wiki/sources/2026-06-13-product-docs-and-code-baseline]]
 - [[AI-Sessions/wiki/sources/2026-06-24-runtime-and-ops-refresh]]
 
-## Existing ContextHub Meta Docs
+## Wiki Structure
 
-- [[AI-Sessions/wiki/design/agent-wiki-operating-model]]
-- [[AI-Sessions/wiki/projects/transight-contexthub-setup]]
-- [[AI-Sessions/wiki/projects/chatgpt-share-01-overview]]
-- [[AI-Sessions/wiki/projects/chatgpt-share-02-structure]]
-- [[AI-Sessions/wiki/projects/chatgpt-share-03-rules-and-prompts]]
+- `AI-Sessions/raw/`: raw source materials. Do not edit.
+- `AI-Sessions/conversations/`: handoff and session notes.
+- `AI-Sessions/wiki/sources/`: summarized source documents and code baselines.
+- `AI-Sessions/wiki/concepts/`: reusable concepts and frameworks.
+- `AI-Sessions/wiki/decisions/`: architectural and operating decisions.
+- `AI-Sessions/wiki/errors/`: failed paths and risk notes.
+- `AI-Sessions/wiki/projects/`: project state and overview.
+- `AI-Sessions/wiki/design/`: architecture and design notes.
+- `AI-Sessions/wiki/dev-tasks/`: implementation entry points and code maps.
