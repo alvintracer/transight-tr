@@ -8,9 +8,9 @@ export default defineConfig({
   locales: {
     ko: {
       label: '한국어',
-      lang: 'ko',
+      lang: 'ko-KR',
       title: 'Bonanza TTR',
-      description: 'CodeVASP 호환 트래블룰 게이트웨이와 동일 계정주 검증 API 문서',
+      description: 'CodeVASP 호환 트래블룰 게이트웨이 및 동일 계정주 검증 API 문서',
       themeConfig: {
         siteTitle: 'TTR',
         nav: [
@@ -57,7 +57,6 @@ export default defineConfig({
               text: 'Legacy',
               items: [
                 { text: 'Transfer Response', link: '/ko/api/transfer-response' },
-                { text: 'External Adapters', link: '/ko/api/gtr-adapter' },
               ],
             },
           ],
@@ -86,7 +85,7 @@ export default defineConfig({
     },
     en: {
       label: 'English',
-      lang: 'en',
+      lang: 'en-US',
       title: 'Bonanza TTR',
       description: 'CodeVASP-compatible Travel Rule Gateway and OwnerCheck API documentation',
       themeConfig: {
