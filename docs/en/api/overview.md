@@ -1,6 +1,6 @@
 # API Overview
 
-Bonanza TTR API provides a public-key directory, encrypted Travel Rule relay, OwnerCheck, and KYT Gate.
+TravelSafer API provides a public-key directory, encrypted Travel Rule relay, OwnerCheck, and KYT Gate.
 
 Source of truth: [`docs/ttr-api-specification.md`](../../ttr-api-specification.md)
 
@@ -15,7 +15,7 @@ https://api.transight.io/v1
 Service-to-service requests should use the configured service credential. Financial-institution channels can add mTLS, VPN/IPsec, leased lines, and channel encryption depending on the integration profile.
 
 ```http
-Authorization: Bearer <BONANZA_TTR_API_KEY>
+Authorization: Bearer <TRAVELSAFER_API_KEY>
 ```
 
 ## Endpoints

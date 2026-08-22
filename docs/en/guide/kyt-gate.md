@@ -1,6 +1,6 @@
 # Atomic KYT Gate
 
-Bonanza TTR can prevent Travel Rule payload relay until the KYT result is determined.
+TravelSafer can prevent Travel Rule payload relay until the KYT result is determined.
 
 ## Modes
 
@@ -15,7 +15,7 @@ Bonanza TTR can prevent Travel Rule payload relay until the KYT result is determ
 ```mermaid
 sequenceDiagram
   participant FI as FI or VASP
-  participant TTR as Bonanza TTR
+  participant TTR as TravelSafer
   participant KYT as KYT Engine
   participant BFI as Beneficiary VASP
 

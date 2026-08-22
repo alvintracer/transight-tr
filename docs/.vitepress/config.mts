@@ -1,8 +1,8 @@
 import { defineConfig } from 'vitepress';
 
 export default defineConfig({
-  title: 'Bonanza TTR',
-  description: 'Bonanza Travel Rule Gateway and OwnerCheck API documentation',
+  title: 'TravelSafer',
+  description: 'TravelSafer Travel Rule solution and OwnerCheck API documentation',
   appearance: 'dark',
   cleanUrls: true,
 
@@ -10,10 +10,10 @@ export default defineConfig({
     ko: {
       label: '한국어',
       lang: 'ko-KR',
-      title: 'Bonanza TTR',
-      description: '금융기관용 트래블룰 게이트웨이 및 동일 계정주 검증 API 문서',
+      title: 'TravelSafer',
+      description: '금융기관용 트래블룰 솔루션 및 동일 계정주 검증 API 문서',
       themeConfig: {
-        siteTitle: 'TTR',
+        siteTitle: false,
         nav: [
           { text: '가이드', link: '/ko/guide/introduction' },
           { text: 'API', link: '/ko/api/overview' },
@@ -87,10 +87,10 @@ export default defineConfig({
     en: {
       label: 'English',
       lang: 'en-US',
-      title: 'Bonanza TTR',
-      description: 'Travel Rule Gateway and OwnerCheck API documentation',
+      title: 'TravelSafer',
+      description: 'Travel Rule solution and OwnerCheck API documentation',
       themeConfig: {
-        siteTitle: 'TTR',
+        siteTitle: false,
         nav: [
           { text: 'Guide', link: '/en/guide/introduction' },
           { text: 'API', link: '/en/api/overview' },
@@ -154,8 +154,8 @@ export default defineConfig({
   },
 
   themeConfig: {
-    logo: { light: '/logo-dark.png', dark: '/logo-light.png' },
-    siteTitle: 'TTR',
+    logo: { light: '/travelsafer-logo-light.svg', dark: '/travelsafer-logo-dark.svg' },
+    siteTitle: false,
     socialLinks: [
       { icon: 'github', link: 'https://github.com/alvintracer/transight-tr' },
     ],
@@ -163,12 +163,12 @@ export default defineConfig({
       provider: 'local',
     },
     footer: {
-      message: 'Bonanza Travel Rule Gateway',
+      message: 'TravelSafer',
       copyright: 'Copyright 2026 Bonanza Factory Co., Ltd.',
     },
   },
 
   head: [
-    ['link', { rel: 'icon', type: 'image/png', href: '/logo-favicon.png' }],
+    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/travelsafer-favicon.svg' }],
   ],
 });

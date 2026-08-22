@@ -2,7 +2,7 @@
 
 This document is archived.
 
-The 2026-08 redesign removed GTR from the core data plane. Bonanza TTR now uses Bonanza Public Key Directory and CodeVASP-compatible encrypted relay as the active route.
+The 2026-08 redesign removed GTR from the core data plane. TravelSafer now uses TravelSafer Public Key Directory and CodeVASP-compatible encrypted relay as the active route.
 
 ## Current Policy
 
@@ -18,5 +18,5 @@ Future external rails require separate legal, privacy, SLA, and product approval
 
 Current source of truth:
 
-- [Bonanza TTR API Specification](./ttr-api-specification.md)
+- [TravelSafer API Specification](./ttr-api-specification.md)
 - [External Adapters](/ko/api/gtr-adapter)

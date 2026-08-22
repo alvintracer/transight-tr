@@ -10,4 +10,4 @@ The earlier strategy packaged KYT, multiple Travel Rule provider adapters, and b
 4. OwnerCheck
 5. KYT Gate
 
-Use [Bonanza TTR Project Context](./TRANSIGHT_PROJECT_CONTEXT.md) and [Korean internal strategy](/ko/internal/strategy) as the current source of truth.
+Use [TravelSafer Project Context](./TRANSIGHT_PROJECT_CONTEXT.md) and [Korean internal strategy](/ko/internal/strategy) as the current source of truth.

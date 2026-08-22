@@ -13,7 +13,7 @@
 | `LACK_OF_INFORMATION` | 정보 부족 |
 | `UNKNOWN` | 기타 사유 |
 
-## Bonanza TTR Errors
+## TravelSafer Errors
 
 ### Authentication
 

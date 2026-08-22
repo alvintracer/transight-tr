@@ -1,15 +1,15 @@
 # Quick Start
 
-This example shows the core Bonanza TTR flow.
+This example shows the core TravelSafer flow.
 
 ## 0. Install SDK
 
 ```bash
 npm install @bonanza/ttr-sdk
-npx bonanza-ttr init --vasp-id your-vasp-id --base-url https://api.transight.io/v1
+npx travelsafer init --vasp-id your-vasp-id --base-url https://api.transight.io/v1
 ```
 
-The CLI creates `bonanza-ttr.config.json`, `.env.bonanza-ttr.example`, and a TypeScript integration example.
+The CLI creates `travelsafer.config.json`, `.env.travelsafer.example`, and a TypeScript integration example.
 
 ## 1. Register a VASP
 
@@ -43,6 +43,28 @@ The `pubkey` field is a Base64 Ed25519 verify key. Encryption clients derive an 
 ```text
 Ed25519 public key -> X25519 public key
 IVMS101 JSON -> NaCl box -> ENCRYPTED_IVMS101_BASE64
+```
+
+Using the SDK:
+
+```ts
+import { TravelSaferClient, encryptPayload } from '@bonanza/ttr-sdk';
+
+const client = new TravelSaferClient({
+  baseUrl: 'https://api.transight.io/v1',
+  apiKey: process.env.TRAVELSAFER_API_KEY,
+  vaspEntityId: 'bank-a',
+  signingPrivateKey: process.env.TRAVELSAFER_PRIVATE_KEY,
+});
+
+const beneficiary = await client.getPublicKey('kakaopay');
+const beneficiaryPublicKey = beneficiary.keys[0]?.pubkey;
+
+const payload = await encryptPayload(
+  { ivms101: { /* IVMS101 payload */ } },
+  process.env.TRAVELSAFER_PRIVATE_KEY!,
+  beneficiaryPublicKey!
+);
 ```
 
 ## 4. Call Transfer Authorization

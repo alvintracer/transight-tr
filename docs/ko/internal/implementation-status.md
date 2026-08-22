@@ -4,7 +4,7 @@
 
 ## Current Core
 
-Bonanza TTR은 2026-08 redesign 이후 다음 core로 정리합니다.
+TravelSafer은 2026-08 redesign 이후 다음 core로 정리합니다.
 
 | Component | Status | Role |
 |-----------|--------|------|
@@ -32,7 +32,7 @@ Bonanza TTR은 2026-08 redesign 이후 다음 core로 정리합니다.
 
 | API | Purpose |
 |-----|---------|
-| `GET /health` | Gateway health check |
+| `GET /health` | Service health check |
 | `GET /vasp-registry` | VASP 목록 조회 |
 | `GET /vasp-registry/pubkey/{vaspEntityId}` | active public key 조회 |
 | `POST /vasp-registry` | VASP와 최초 public key 등록 |
@@ -45,7 +45,7 @@ Bonanza TTR은 2026-08 redesign 이후 다음 core로 정리합니다.
 
 ## Data Boundary
 
-| Data | Bonanza core handling |
+| Data | TravelSafer core handling |
 |------|-----------------------|
 | VASP public key | 저장 및 공개 조회 |
 | Encrypted IVMS101 payload | relay, metadata 기록 |

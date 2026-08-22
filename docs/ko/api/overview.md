@@ -1,6 +1,6 @@
 # API 개요
 
-Bonanza TTR API는 공개키 디렉터리, 암호화된 Travel Rule relay, OwnerCheck, KYT Gate를 제공합니다.
+TravelSafer API는 공개키 디렉터리, 암호화된 Travel Rule relay, OwnerCheck, KYT Gate를 제공합니다.
 
 상세 스펙의 기준 문서는 [`docs/ttr-api-specification.md`](../../ttr-api-specification.md)입니다.
 
@@ -15,7 +15,7 @@ https://api.transight.io/v1
 기관 간 서버 통신은 발급된 API credential을 기본으로 사용합니다. 금융기관 채널은 계약 구조와 보안 요구에 따라 mTLS, VPN/IPsec, 전용성 회선, 구간 암호화를 함께 적용할 수 있습니다.
 
 ```http
-Authorization: Bearer <BONANZA_TTR_API_KEY>
+Authorization: Bearer <TRAVELSAFER_API_KEY>
 ```
 
 ## Endpoints
@@ -24,7 +24,7 @@ Authorization: Bearer <BONANZA_TTR_API_KEY>
 
 | Method | Path | Description |
 | --- | --- | --- |
-| `GET` | `/health` | Gateway health check |
+| `GET` | `/health` | Service health check |
 
 ### VASP Registry
 

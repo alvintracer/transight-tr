@@ -211,6 +211,6 @@ export class BonanzaTtrClient {
         return record.reasonMsg;
       }
     }
-    return `Bonanza TTR request failed with HTTP ${status}`;
+    return `TravelSafer request failed with HTTP ${status}`;
   }
 }

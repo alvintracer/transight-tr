@@ -10,9 +10,9 @@ v1 기본 원칙은 다음과 같습니다.
 
 | 항목 | 정책 |
 |------|------|
-| Routing | Bonanza가 수신 VASP public key와 endpoint를 조회합니다. |
+| Routing | TravelSafer가 수신 VASP public key와 endpoint를 조회합니다. |
 | Payload | 송신 VASP 또는 금융기관 채널에서 수신 VASP public key로 암호화합니다. |
-| Storage | Bonanza는 상태, routing, 결과 metadata만 저장합니다. |
+| Storage | TravelSafer는 상태, routing, 결과 metadata만 저장합니다. |
 | Schema | 이름, 생년월일, 주소 비교 정책은 기관별 rule로 둡니다. |
 | CODE compatibility | CodeVASP namespace를 수정하지 않고 별도 extension으로 둡니다. |
 
@@ -20,7 +20,7 @@ v1 기본 원칙은 다음과 같습니다.
 
 ```http
 POST /owner-check
-Authorization: Bearer <BONANZA_TTR_API_KEY>
+Authorization: Bearer <TRAVELSAFER_API_KEY>
 Content-Type: application/json
 ```
 
@@ -28,7 +28,7 @@ Content-Type: application/json
 
 ```http
 POST /owner-check/{beneficiaryVaspEntityId}
-Authorization: Bearer <BONANZA_TTR_API_KEY>
+Authorization: Bearer <TRAVELSAFER_API_KEY>
 Content-Type: application/json
 ```
 
@@ -56,7 +56,7 @@ Content-Type: application/json
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `ownerCheckId` | No | Client supplied idempotency key. If omitted, Bonanza creates one. |
+| `ownerCheckId` | No | Client supplied idempotency key. If omitted, TravelSafer creates one. |
 | `originatorVaspEntityId` | Yes | Requesting VASP or financial institution tenant. |
 | `beneficiaryVaspEntityId` | Yes | VASP that can verify the account owner. Path value has priority if present. |
 | `currency` | Yes | Asset symbol. |
@@ -69,7 +69,7 @@ Content-Type: application/json
 
 ## Recommended Payload
 
-The inner payload is encrypted before Bonanza receives it.
+The inner payload is encrypted before TravelSafer receives it.
 
 ```json
 {
@@ -108,7 +108,7 @@ The inner payload is encrypted before Bonanza receives it.
 
 ```http
 GET /owner-check?id=oc_20260821_000001
-Authorization: Bearer <BONANZA_TTR_API_KEY>
+Authorization: Bearer <TRAVELSAFER_API_KEY>
 ```
 
 ```json

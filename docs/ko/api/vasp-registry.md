@@ -1,6 +1,6 @@
 # VASP Registry
 
-VASP Registry는 Bonanza TTR의 공개키 디렉터리입니다. VASP endpoint, channel, health, capability, Ed25519 public key를 관리합니다.
+VASP Registry는 TravelSafer의 공개키 디렉터리입니다. VASP endpoint, channel, health, capability, Ed25519 public key를 관리합니다.
 
 ## List
 

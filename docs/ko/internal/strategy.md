@@ -2,7 +2,7 @@
 
 ## 결론
 
-Bonanza TTR은 "여러 해외 Travel Rule provider를 중계하는 adapter hub"가 아니라, CodeVASP 구조를 토대로 한 Bonanza 운영형 Travel Rule Gateway로 간다.
+TravelSafer은 "여러 해외 Travel Rule provider를 중계하는 adapter hub"가 아니라, CodeVASP 구조를 토대로 한 Bonanza 운영형 Travel Rule Solution로 간다.
 
 핵심 역할은 세 가지입니다.
 
@@ -14,7 +14,7 @@ Bonanza TTR은 "여러 해외 Travel Rule provider를 중계하는 adapter hub"�
 
 | Customer | Primary Integration | Value |
 |----------|---------------------|-------|
-| 은행, 전자금융업자 | Bonanza IDC 채널 | 내부망, 망분리, 보안심사 부담을 줄인 Travel Rule 도입 |
+| 은행, 전자금융업자 | TravelSafer IDC 채널 | 내부망, 망분리, 보안심사 부담을 줄인 Travel Rule 도입 |
 | 국내 VASP | CodeVASP-compatible API 또는 SDK | 기존 TR pipeline을 크게 바꾸지 않고 public key relay 참여 |
 | 해외 VASP | Cloud API 또는 edge node | 한국 금융기관 및 국내 VASP와의 송수신 대응 |
 | 비의무 VASP | OwnerCheck 중심의 제한 연동 | 동일 계정주 검증 등 enhanced risk mitigation |
@@ -23,9 +23,9 @@ Bonanza TTR은 "여러 해외 Travel Rule provider를 중계하는 adapter hub"�
 
 ```mermaid
 flowchart LR
-  FI[Financial Institution] -->|Dedicated line, VPN/IPsec, mTLS| IDC[Bonanza IDC Ingress]
-  VASP[VASP or Exchange] -->|Cloud API or SDK| API[Bonanza TTR API]
-  IDC --> Core[Bonanza TTR Core]
+  FI[Financial Institution] -->|Dedicated line, VPN/IPsec, mTLS| IDC[TravelSafer IDC Ingress]
+  VASP[VASP or Exchange] -->|Cloud API or SDK| API[TravelSafer API]
+  IDC --> Core[TravelSafer Core]
   API --> Core
   Core --> Keys[Public Key Directory]
   Core --> Relay[Encrypted Payload Relay]
@@ -37,7 +37,7 @@ flowchart LR
 
 ## Business Rationale
 
-금융기관은 해외 SaaS나 VASP형 Docker 구성요소를 직접 내부망에 넣기 어렵습니다. Bonanza는 기존 VAN/전자금융보조업자 경험을 바탕으로 다음 근거를 제공합니다.
+금융기관은 해외 SaaS나 VASP형 Docker 구성요소를 직접 내부망에 넣기 어렵습니다. TravelSafer는 기존 VAN/전자금융보조업자 경험을 바탕으로 다음 근거를 제공합니다.
 
 | Role | Rationale |
 |------|-----------|

@@ -65,6 +65,12 @@ select {
   letter-spacing: 0;
 }
 
+.VPNavBarTitle .logo {
+  height: 28px;
+  width: 144px;
+  max-width: 44vw;
+}
+
 .VPHero .tagline {
   max-width: 720px;
   font-weight: 400;

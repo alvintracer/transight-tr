@@ -1,13 +1,13 @@
 # Architecture
 
-Bonanza TTR consists of a public-key directory, encrypted relay, financial-institution ingress, KYT Gate, and audit storage.
+TravelSafer consists of a public-key directory, encrypted relay, financial-institution ingress, KYT Gate, and audit storage.
 
 ```text
 Financial Institution / VASP
         |
         | HTTPS / mTLS / VPN / leased line
         v
-Bonanza TTR Gateway
+TravelSafer
   - VASP Registry
   - Public Key Directory
   - Transfer Relay
@@ -45,6 +45,6 @@ Encryption clients derive an X25519/Curve25519 public key from the Ed25519 publi
 
 ## Boundary
 
-Bonanza TTR operates routing metadata and audit data. Plaintext IVMS101 PII should be encrypted by the originator for the beneficiary VASP before relay.
+TravelSafer operates routing metadata and audit data. Plaintext IVMS101 PII should be encrypted by the originator for the beneficiary VASP before relay.
 
 OwnerCheck follows the same boundary. v1 uses encrypted payload relay; salted hash or PSI can be added later as a separate option.

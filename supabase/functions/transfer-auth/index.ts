@@ -1,7 +1,7 @@
 /**
  * Transfer Authorization Edge Function
  *
- * Bonanza TTR 2026-08 redesign:
+ * TravelSafer 2026-08 redesign:
  * - CodeVASP-compatible relay is the default data plane.
  * - The beneficiary VASP and an active encryption public key are mandatory.
  * - Bonanza relays encrypted IVMS101 payloads and keeps transaction metadata.

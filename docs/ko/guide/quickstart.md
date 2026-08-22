@@ -1,15 +1,15 @@
-# Quick Start
+# 빠른 시작
 
-이 예시는 Bonanza TTR의 기본 연동 흐름을 보여줍니다.
+이 예시는 TravelSafer의 기본 연동 흐름을 보여줍니다.
 
 ## 0. SDK 설치
 
 ```bash
 npm install @bonanza/ttr-sdk
-npx bonanza-ttr init --vasp-id your-vasp-id --base-url https://api.transight.io/v1
+npx travelsafer init --vasp-id your-vasp-id --base-url https://api.transight.io/v1
 ```
 
-CLI는 `bonanza-ttr.config.json`, `.env.bonanza-ttr.example`, TypeScript 연동 예제를 생성합니다.
+CLI는 `travelsafer.config.json`, `.env.travelsafer.example`, TypeScript 연동 예제를 생성합니다.
 
 ## 1. VASP 등록
 
@@ -50,13 +50,13 @@ IVMS101 JSON -> NaCl box -> ENCRYPTED_IVMS101_BASE64
 SDK를 쓰는 경우:
 
 ```ts
-import { BonanzaTtrClient, encryptPayload } from '@bonanza/ttr-sdk';
+import { TravelSaferClient, encryptPayload } from '@bonanza/ttr-sdk';
 
-const client = new BonanzaTtrClient({
+const client = new TravelSaferClient({
   baseUrl: 'https://api.transight.io/v1',
-  apiKey: process.env.BONANZA_TTR_API_KEY,
+  apiKey: process.env.TRAVELSAFER_API_KEY,
   vaspEntityId: 'bank-a',
-  signingPrivateKey: process.env.BONANZA_TTR_PRIVATE_KEY,
+  signingPrivateKey: process.env.TRAVELSAFER_PRIVATE_KEY,
 });
 
 const beneficiary = await client.getPublicKey('kakaopay');
@@ -64,7 +64,7 @@ const beneficiaryPublicKey = beneficiary.keys[0]?.pubkey;
 
 const payload = await encryptPayload(
   { ivms101: { /* IVMS101 payload */ } },
-  process.env.BONANZA_TTR_PRIVATE_KEY!,
+  process.env.TRAVELSAFER_PRIVATE_KEY!,
   beneficiaryPublicKey!
 );
 ```

@@ -1,17 +1,17 @@
-# Bonanza TTR
+# TravelSafer
 
-Bonanza TTR is a Travel Rule Gateway redesigned around the CodeVASP-style public key and encrypted payload relay model.
+TravelSafer is a complete Travel Rule solution built around public-key discovery, encrypted payload delivery, OwnerCheck, KYT Gate, and financial-institution channel operations.
 
 ## Core Direction
 
 - `bonanza` is the default alliance route.
-- Bonanza operates the VASP public key directory and encrypted payload relay.
+- TravelSafer operates the VASP public key directory and encrypted payload relay.
 - Registry keys are Base64 Ed25519 public keys.
 - Payload encryption derives X25519/Curve25519 keys from Ed25519 keys for CodeVASP compatibility.
-- Financial institutions can connect through Bonanza IDC channels such as dedicated lines, VPN/IPsec, mTLS, and VAN-style operating infrastructure.
+- Financial institutions can connect through TravelSafer IDC channels such as dedicated lines, VPN/IPsec, mTLS, and VAN-style operating infrastructure.
 - Non-financial VASPs and overseas exchanges can connect through cloud API, SDK, or onboarding assistant.
 - GTR, Sumsub, and VerifyVASP adapters are disabled in the core data plane and treated as future optional rails.
-- Same-owner verification is provided as the Bonanza extension `OwnerCheck`.
+- Same-owner verification is provided as the TravelSafer extension `OwnerCheck`.
 
 ## Main Components
 
@@ -19,14 +19,14 @@ Bonanza TTR is a Travel Rule Gateway redesigned around the CodeVASP-style public
 Bank / VASP / Fintech
         |
         v
-Bonanza TTR Gateway
+TravelSafer
   - health
   - vasp-registry
   - transfer-auth
   - owner-check
         |
         +-- Public Key Directory
-        +-- CodeVASP-compatible Relay
+        +-- Encrypted Payload Relay
         +-- OwnerCheck Relay
         +-- Atomic KYT Gate
         +-- Transfer Status / TTL Queue / Audit Log
@@ -65,15 +65,15 @@ npx supabase functions deploy owner-check
 
 ```bash
 npm install @bonanza/ttr-sdk
-npx bonanza-ttr init --vasp-id your-vasp-id --base-url https://api.transight.io/v1
+npx travelsafer init --vasp-id your-vasp-id --base-url https://api.transight.io/v1
 ```
 
 The SDK package lives in `packages/bonanza-ttr-sdk` and includes:
 
-- `BonanzaTtrClient` for `vasp-registry`, `transfer-auth`, and `owner-check`
+- `TravelSaferClient` for `vasp-registry`, `transfer-auth`, and `owner-check`
 - CodeVASP-compatible Ed25519 request signing helpers
 - Ed25519 to X25519 payload encryption helpers
-- `bonanza-ttr init` onboarding CLI
+- `travelsafer init` onboarding CLI
 
 ## Documentation
 

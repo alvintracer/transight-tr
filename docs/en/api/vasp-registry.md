@@ -1,6 +1,6 @@
 # VASP Registry
 
-VASP Registry is the Bonanza TTR public-key directory. It manages VASP endpoints, channels, health, capabilities, and Ed25519 public keys.
+VASP Registry is the TravelSafer public-key directory. It manages VASP endpoints, channels, health, capabilities, and Ed25519 public keys.
 
 ## List
 

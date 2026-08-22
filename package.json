@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Bonanza TTR CodeVASP-compatible Travel Rule Gateway built on Supabase",
+  "description": "TravelSafer Travel Rule solution built on Supabase",
   "scripts": {
     "dev": "supabase start",
     "dev:stop": "supabase stop",

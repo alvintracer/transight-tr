@@ -80,11 +80,11 @@ function envTemplate(apiKeyEnv: string, signingPrivateKeyEnv: string, signingPub
 
 function exampleTemplate(configFileName: string): string {
   return `import { readFile } from 'node:fs/promises';
-import { BonanzaTtrClient, encryptPayload } from '@bonanza/ttr-sdk';
+import { TravelSaferClient, encryptPayload } from '@bonanza/ttr-sdk';
 
 const config = JSON.parse(await readFile(new URL('./${configFileName}', import.meta.url), 'utf8'));
 
-const client = new BonanzaTtrClient({
+const client = new TravelSaferClient({
   baseUrl: config.baseUrl,
   apiKey: process.env[config.apiKeyEnv],
   vaspEntityId: config.vaspEntityId,
@@ -125,12 +125,12 @@ async function init(flags: Record<string, string | boolean>): Promise<void> {
   const baseUrl = stringFlag(flags, 'base-url', 'https://api.transight.io/v1')!;
   const vaspEntityId = stringFlag(flags, 'vasp-id', 'your-vasp-id')!;
   const allianceName = stringFlag(flags, 'alliance', 'bonanza')!;
-  const apiKeyEnv = stringFlag(flags, 'api-key-env', 'BONANZA_TTR_API_KEY')!;
-  const signingPrivateKeyEnv = stringFlag(flags, 'private-key-env', 'BONANZA_TTR_PRIVATE_KEY')!;
-  const signingPublicKeyEnv = stringFlag(flags, 'public-key-env', 'BONANZA_TTR_PUBLIC_KEY')!;
+  const apiKeyEnv = stringFlag(flags, 'api-key-env', 'TRAVELSAFER_API_KEY')!;
+  const signingPrivateKeyEnv = stringFlag(flags, 'private-key-env', 'TRAVELSAFER_PRIVATE_KEY')!;
+  const signingPublicKeyEnv = stringFlag(flags, 'public-key-env', 'TRAVELSAFER_PUBLIC_KEY')!;
   const force = boolFlag(flags, 'force');
   await writeFileOnce(
-    path.join(targetDir, 'bonanza-ttr.config.json'),
+    path.join(targetDir, 'travelsafer.config.json'),
     configTemplate({
       baseUrl,
       vaspEntityId,
@@ -142,17 +142,17 @@ async function init(flags: Record<string, string | boolean>): Promise<void> {
     force
   );
   await writeFileOnce(
-    path.join(targetDir, '.env.bonanza-ttr.example'),
+    path.join(targetDir, '.env.travelsafer.example'),
     envTemplate(apiKeyEnv, signingPrivateKeyEnv, signingPublicKeyEnv),
     force
   );
   await writeFileOnce(
-    path.join(targetDir, 'bonanza-ttr.example.ts'),
-    exampleTemplate('bonanza-ttr.config.json'),
+    path.join(targetDir, 'travelsafer.example.ts'),
+    exampleTemplate('travelsafer.config.json'),
     force
   );
-  console.log(`Bonanza TTR files created in ${targetDir}`);
-  console.log('Next: fill .env.bonanza-ttr.example values and wire bonanza-ttr.example.ts into your transfer pipeline.');
+  console.log(`TravelSafer files created in ${targetDir}`);
+  console.log('Next: fill .env.travelsafer.example values and wire travelsafer.example.ts into your transfer pipeline.');
 }
 
 async function readConfig(filePath: string): Promise<BonanzaTtrConfigFile> {
@@ -164,15 +164,18 @@ async function readConfig(filePath: string): Promise<BonanzaTtrConfigFile> {
 }
 
 async function clientFromFlags(flags: Record<string, string | boolean>): Promise<BonanzaTtrClient> {
-  const configPath = path.resolve(stringFlag(flags, 'config', 'bonanza-ttr.config.json')!);
+  const defaultConfig = existsSync('travelsafer.config.json') ? 'travelsafer.config.json' : 'bonanza-ttr.config.json';
+  const configPath = path.resolve(stringFlag(flags, 'config', defaultConfig)!);
   const config = await readConfig(configPath);
   return new BonanzaTtrClient({
     baseUrl: stringFlag(flags, 'base-url', config.baseUrl)!,
-    apiKey: process.env[config.apiKeyEnv ?? 'BONANZA_TTR_API_KEY'],
+    apiKey: process.env[config.apiKeyEnv ?? 'TRAVELSAFER_API_KEY'] ?? process.env.BONANZA_TTR_API_KEY,
     allianceName: config.allianceName ?? 'bonanza',
     vaspEntityId: config.vaspEntityId,
-    signingPrivateKey: process.env[config.signingPrivateKeyEnv ?? 'BONANZA_TTR_PRIVATE_KEY'],
-    signingPublicKey: process.env[config.signingPublicKeyEnv ?? 'BONANZA_TTR_PUBLIC_KEY'],
+    signingPrivateKey:
+      process.env[config.signingPrivateKeyEnv ?? 'TRAVELSAFER_PRIVATE_KEY'] ?? process.env.BONANZA_TTR_PRIVATE_KEY,
+    signingPublicKey:
+      process.env[config.signingPublicKeyEnv ?? 'TRAVELSAFER_PUBLIC_KEY'] ?? process.env.BONANZA_TTR_PUBLIC_KEY,
   });
 }
 
@@ -184,21 +187,24 @@ async function health(flags: Record<string, string | boolean>): Promise<void> {
 async function pubkey(positional: string[], flags: Record<string, string | boolean>): Promise<void> {
   const vaspEntityId = positional[0];
   if (!vaspEntityId) {
-    throw new Error('Usage: bonanza-ttr pubkey <vaspEntityId> [--config bonanza-ttr.config.json]');
+    throw new Error('Usage: travelsafer pubkey <vaspEntityId> [--config travelsafer.config.json]');
   }
   const client = await clientFromFlags(flags);
   console.log(JSON.stringify(await client.getPublicKey(vaspEntityId), null, 2));
 }
 
 function help(): void {
-  console.log(`Bonanza TTR SDK CLI ${VERSION}
+  console.log(`TravelSafer SDK CLI ${VERSION}
 
 Usage:
-  bonanza-ttr init [--dir .] [--vasp-id my-vasp] [--base-url https://api.transight.io/v1] [--force]
-  bonanza-ttr health [--config bonanza-ttr.config.json]
-  bonanza-ttr pubkey <vaspEntityId> [--config bonanza-ttr.config.json]
-  bonanza-ttr --help
-  bonanza-ttr --version
+  travelsafer init [--dir .] [--vasp-id my-vasp] [--base-url https://api.transight.io/v1] [--force]
+  travelsafer health [--config travelsafer.config.json]
+  travelsafer pubkey <vaspEntityId> [--config travelsafer.config.json]
+  travelsafer --help
+  travelsafer --version
+
+Legacy alias:
+  bonanza-ttr
 `);
 }
 
@@ -229,6 +235,7 @@ async function main(): Promise<void> {
 
 main().catch((error: unknown) => {
   const message = error instanceof Error ? error.message : String(error);
-  console.error(`bonanza-ttr: ${message}`);
+  const cliName = path.basename(process.argv[1] ?? 'travelsafer');
+  console.error(`${cliName}: ${message}`);
   process.exitCode = 1;
 });

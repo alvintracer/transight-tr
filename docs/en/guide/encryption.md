@@ -1,6 +1,6 @@
 # Encryption
 
-Bonanza TTR follows the CodeVASP cryptographic model.
+TravelSafer follows the CodeVASP cryptographic model.
 
 ## Key Interpretation
 
@@ -22,9 +22,9 @@ IVMS101 JSON -> XSalsa20-Poly1305 / NaCl box
 
 The encrypted output is Base64-encoded and passed as the `payload` field to `transfer-auth` or `owner-check`.
 
-## Bonanza Boundary
+## TravelSafer Boundary
 
-Bonanza TTR operates:
+TravelSafer operates:
 
 - transfer id
 - VASP entity id

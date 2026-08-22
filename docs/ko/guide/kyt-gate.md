@@ -1,6 +1,6 @@
 # Atomic KYT Gate
 
-Bonanza TTR은 KYT 결과가 확정되기 전에 Travel Rule payload를 외부 VASP로 relay하지 않도록 구성할 수 있습니다.
+TravelSafer은 KYT 결과가 확정되기 전에 Travel Rule payload를 외부 VASP로 relay하지 않도록 구성할 수 있습니다.
 
 ## Modes
 
@@ -15,7 +15,7 @@ Bonanza TTR은 KYT 결과가 확정되기 전에 Travel Rule payload를 외부 V
 ```mermaid
 sequenceDiagram
   participant FI as FI or VASP
-  participant TTR as Bonanza TTR
+  participant TTR as TravelSafer
   participant KYT as KYT Engine
   participant BFI as Beneficiary VASP
 

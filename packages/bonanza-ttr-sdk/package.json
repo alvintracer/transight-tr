@@ -1,11 +1,12 @@
 {
   "name": "@bonanza/ttr-sdk",
   "version": "0.1.0",
-  "description": "Bonanza TTR client SDK and onboarding CLI",
+  "description": "TravelSafer client SDK and onboarding CLI",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
+    "travelsafer": "./dist/cli.js",
     "bonanza-ttr": "./dist/cli.js"
   },
   "files": [

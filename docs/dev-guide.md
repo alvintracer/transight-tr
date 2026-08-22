@@ -1,4 +1,4 @@
-# Bonanza TTR 개발 가이드
+# TravelSafer 개발 가이드
 
 이 문서는 로컬 개발과 배포 작업에 필요한 최소 절차를 정리합니다.
 
@@ -17,7 +17,7 @@ AI-Sessions/wiki/        Business and design knowledge base
 
 | Function | Role |
 |----------|------|
-| `health` | Gateway health check |
+| `health` | Service health check |
 | `vasp-registry` | VASP and public key lifecycle |
 | `transfer-auth` | Travel Rule relay and status |
 | `owner-check` | Identical Account Owner Verification |
@@ -48,11 +48,11 @@ npx supabase functions deploy transfer-response --project-ref <project-ref>
 ## Secrets
 
 ```bash
-npx supabase secrets set BONANZA_HUB_VASP_ENTITY_ID=bonanza
+npx supabase secrets set TRAVELSAFER_HUB_VASP_ENTITY_ID=bonanza
 npx supabase secrets set BONANZA_ALLIANCE_PREFIX=bonanza
 npx supabase secrets set BONANZA_SIGNING_PRIVATE_KEY=<base64-private-key>
 npx supabase secrets set BONANZA_SIGNING_PUBLIC_KEY=<base64-public-key>
-npx supabase secrets set BONANZA_TTR_CALLBACK_BASE_URL=https://<callback-host>
+npx supabase secrets set TRAVELSAFER_CALLBACK_BASE_URL=https://<callback-host>
 npx supabase secrets set KYT_API_BASE_URL=https://<kyt-host>
 npx supabase secrets set KYT_API_KEY=<kyt-api-key>
 ```

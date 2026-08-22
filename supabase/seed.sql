@@ -1,5 +1,5 @@
 -- ==========================================================
--- Bonanza TTR seed data for local development
+-- TravelSafer seed data for local development
 -- ==========================================================
 
 INSERT INTO vasps (
@@ -15,7 +15,7 @@ INSERT INTO vasps (
 )
 VALUES (
   'bonanza-hub',
-  'Bonanza TTR Gateway',
+  'TravelSafer',
   'Bonanza Factory Co., Ltd.',
   'KR',
   'bonanza',

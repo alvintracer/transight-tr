@@ -10,9 +10,9 @@ The v1 model is:
 
 | Item | Policy |
 |------|--------|
-| Routing | Bonanza resolves the beneficiary VASP public key and endpoint. |
+| Routing | TravelSafer resolves the beneficiary VASP public key and endpoint. |
 | Payload | The originator encrypts the payload to the beneficiary VASP public key. |
-| Storage | Bonanza stores status, routing, and result metadata only. |
+| Storage | TravelSafer stores status, routing, and result metadata only. |
 | Schema | Name and date-of-birth matching policies are institution-specific. |
 | CODE compatibility | The CodeVASP namespace stays unchanged. OwnerCheck is a separate extension. |
 
@@ -20,7 +20,7 @@ The v1 model is:
 
 ```http
 POST /owner-check
-Authorization: Bearer <BONANZA_TTR_API_KEY>
+Authorization: Bearer <TRAVELSAFER_API_KEY>
 Content-Type: application/json
 ```
 
@@ -28,7 +28,7 @@ You may also provide the beneficiary in the path.
 
 ```http
 POST /owner-check/{beneficiaryVaspEntityId}
-Authorization: Bearer <BONANZA_TTR_API_KEY>
+Authorization: Bearer <TRAVELSAFER_API_KEY>
 Content-Type: application/json
 ```
 
@@ -56,7 +56,7 @@ Content-Type: application/json
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `ownerCheckId` | No | Client supplied idempotency key. Bonanza creates one when omitted. |
+| `ownerCheckId` | No | Client supplied idempotency key. TravelSafer creates one when omitted. |
 | `originatorVaspEntityId` | Yes | Requesting VASP or financial-institution tenant. |
 | `beneficiaryVaspEntityId` | Yes | VASP that can verify the account owner. Path value has priority when present. |
 | `currency` | Yes | Asset symbol. |
@@ -69,7 +69,7 @@ Content-Type: application/json
 
 ## Recommended Payload
 
-The inner payload is encrypted before Bonanza receives it.
+The inner payload is encrypted before TravelSafer receives it.
 
 ```json
 {
@@ -108,7 +108,7 @@ Salted hash or PSI-based matching can be added later after institutional policy 
 
 ```http
 GET /owner-check?id=oc_20260821_000001
-Authorization: Bearer <BONANZA_TTR_API_KEY>
+Authorization: Bearer <TRAVELSAFER_API_KEY>
 ```
 
 ```json

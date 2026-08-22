@@ -1,5 +1,5 @@
 -- ==========================================================
--- Bonanza TTR CodeVASP-core redesign
+-- TravelSafer CodeVASP-core redesign
 -- ==========================================================
 
 -- Bonanza becomes the default network namespace for new VASP records.

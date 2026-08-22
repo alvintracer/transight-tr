@@ -1,5 +1,5 @@
 /**
- * Bonanza TTR protocol adapter.
+ * TravelSafer protocol adapter.
  *
  * Core direction after the 2026-08 redesign:
  * - CodeVASP-compatible Travel Rule relay is the baseline.

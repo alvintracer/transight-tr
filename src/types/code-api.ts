@@ -1,5 +1,5 @@
 /**
- * CodeVASP-compatible API types plus Bonanza TTR extensions.
+ * CodeVASP-compatible API types plus TravelSafer extensions.
  *
  * Source baseline:
  * - CodeVASP public key registry stores Base64 Ed25519 verify keys.
@@ -98,7 +98,7 @@ export interface SearchVaspByWalletResult {
 
 /**
  * Legacy CodeVASP-compatible address verification shape.
- * In Bonanza TTR this should be replaced by OwnerCheck for same-owner checks.
+ * In TravelSafer this should be replaced by OwnerCheck for same-owner checks.
  */
 export interface VirtualAssetAddressSearchRequest {
   currency: string;

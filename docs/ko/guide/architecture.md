@@ -1,13 +1,13 @@
 # 아키텍처
 
-Bonanza TTR의 아키텍처는 공개키 디렉터리, 암호화 relay, 금융기관용 ingress, KYT Gate, 감사 저장소로 구성됩니다.
+TravelSafer의 아키텍처는 공개키 디렉터리, 암호화 relay, 금융기관용 ingress, KYT Gate, 감사 저장소로 구성됩니다.
 
 ```text
 Financial Institution / VASP
         |
         | HTTPS / mTLS / VPN / leased line
         v
-Bonanza TTR Gateway
+TravelSafer
   - VASP Registry
   - Public Key Directory
   - Transfer Relay
@@ -45,6 +45,6 @@ metadata.encryptionSuite = X25519-XSalsa20-Poly1305
 
 ## Status Boundary
 
-Bonanza TTR은 routing metadata와 감사 정보를 운영합니다. IVMS101 PII 원문은 송신 기관이 수신 VASP 공개키로 암호화한 뒤 전달합니다.
+TravelSafer은 routing metadata와 감사 정보를 운영합니다. IVMS101 PII 원문은 송신 기관이 수신 VASP 공개키로 암호화한 뒤 전달합니다.
 
 OwnerCheck payload도 같은 원칙을 따릅니다. v1에서는 암호화 payload relay를 기본으로 하고, 향후 salted hash 또는 PSI 방식은 별도 확장으로 둡니다.

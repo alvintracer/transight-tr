@@ -1,6 +1,6 @@
 # Transfer Authorization
 
-`transfer-auth`는 Bonanza TTR의 Travel Rule relay API입니다. 출금 요청은 반드시 수신 VASP와 active public key가 있어야 진행됩니다.
+`transfer-auth`는 TravelSafer의 Travel Rule relay API입니다. 출금 요청은 반드시 수신 VASP와 active public key가 있어야 진행됩니다.
 
 ## Outgoing
 

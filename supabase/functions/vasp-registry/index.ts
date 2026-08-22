@@ -1,7 +1,7 @@
 /**
  * VASP Registry Edge Function
  *
- * Bonanza TTR 2026-08 redesign:
+ * TravelSafer 2026-08 redesign:
  * - Registry is the public-key directory for connected VASPs.
  * - The canonical key is a Base64 Ed25519 verify key.
  * - Encryption clients derive X25519/Curve25519 from the Ed25519 key.

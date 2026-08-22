@@ -1,6 +1,6 @@
 # 암호화
 
-Bonanza TTR의 암호화 모델은 CodeVASP 원본 구조를 기준으로 합니다.
+TravelSafer의 암호화 모델은 CodeVASP 원본 구조를 기준으로 합니다.
 
 ## Key Interpretation
 
@@ -22,9 +22,9 @@ IVMS101 JSON -> XSalsa20-Poly1305 / NaCl box
 
 암호화 결과는 Base64 문자열로 `payload` 필드에 담아 `transfer-auth` 또는 `owner-check`에 전달합니다.
 
-## Bonanza Boundary
+## TravelSafer Boundary
 
-Bonanza TTR은 다음 정보를 운영합니다.
+TravelSafer은 다음 정보를 운영합니다.
 
 - transfer id
 - VASP entity id

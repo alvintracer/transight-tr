@@ -6,7 +6,7 @@ Query the current state and relay result metadata for a Transfer.
 
 ```http
 GET /transfer-auth?id={transferId}
-Authorization: Bearer <BONANZA_TTR_API_KEY>
+Authorization: Bearer <TRAVELSAFER_API_KEY>
 ```
 
 | Parameter | Required | Description |
@@ -49,5 +49,5 @@ Authorization: Bearer <BONANZA_TTR_API_KEY>
 ## Notes
 
 - `pending` is not automatically treated as `verified`.
-- Bonanza stores routing and status metadata.
+- TravelSafer stores routing and status metadata.
 - Financial-institution IDC channels use the same lookup contract.

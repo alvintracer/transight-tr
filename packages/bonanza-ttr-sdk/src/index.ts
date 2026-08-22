@@ -1,4 +1,5 @@
 export { BonanzaTtrClient, BonanzaTtrError } from './client.js';
+export { BonanzaTtrClient as TravelSaferClient, BonanzaTtrError as TravelSaferError } from './client.js';
 export {
   buildSignatureData,
   createSignedHeaders,

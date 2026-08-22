@@ -1,10 +1,10 @@
-# Bonanza TTR 환경 구축 및 마이그레이션 가이드
+# TravelSafer 환경 구축 및 마이그레이션 가이드
 
 마지막 업데이트: 2026-08-21
 
 ## Purpose
 
-새 Supabase project 또는 다른 실행 환경에 Bonanza TTR을 재구축할 때 필요한 절차를 정리합니다.
+새 Supabase project 또는 다른 실행 환경에 TravelSafer을 재구축할 때 필요한 절차를 정리합니다.
 
 ## Prerequisites
 
@@ -23,11 +23,11 @@ SUPABASE_URL=https://<project-ref>.supabase.co
 SUPABASE_ANON_KEY=<anon-key>
 SUPABASE_SERVICE_ROLE_KEY=<service-role-key>
 
-BONANZA_HUB_VASP_ENTITY_ID=bonanza
+TRAVELSAFER_HUB_VASP_ENTITY_ID=bonanza
 BONANZA_ALLIANCE_PREFIX=bonanza
 BONANZA_SIGNING_PRIVATE_KEY=<Base64 Ed25519 signing key>
 BONANZA_SIGNING_PUBLIC_KEY=<Base64 Ed25519 public key>
-BONANZA_TTR_CALLBACK_BASE_URL=https://<callback-host>
+TRAVELSAFER_CALLBACK_BASE_URL=https://<callback-host>
 
 KYT_API_BASE_URL=<KYT API URL>
 KYT_API_KEY=<KYT API Key>
@@ -75,7 +75,7 @@ Expected health response:
 ```json
 {
   "status": "up",
-  "service": "Bonanza TTR Gateway"
+  "service": "TravelSafer"
 }
 ```
 
@@ -106,4 +106,4 @@ Expected health response:
 
 ## Historical Note
 
-The pre-redesign plan included multiple external provider adapters. The current target architecture is Bonanza Public Key Directory, CodeVASP-compatible relay, FI IDC channeling, OwnerCheck, and KYT Gate. External provider adapters are optional future rails, not core deployment requirements.
+The pre-redesign plan included multiple external provider adapters. The current target architecture is TravelSafer Public Key Directory, CodeVASP-compatible relay, FI IDC channeling, OwnerCheck, and KYT Gate. External provider adapters are optional future rails, not core deployment requirements.

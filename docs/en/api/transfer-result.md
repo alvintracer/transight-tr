@@ -6,7 +6,7 @@ Report the on-chain transaction hash and move a Transfer to `confirmed`.
 
 ```http
 POST /transfer-auth/result
-Authorization: Bearer <BONANZA_TTR_API_KEY>
+Authorization: Bearer <TRAVELSAFER_API_KEY>
 Content-Type: application/json
 ```
 

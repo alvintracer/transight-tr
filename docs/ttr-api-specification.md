@@ -1,4 +1,4 @@
-# Bonanza TTR API Specification
+# TravelSafer API Specification
 
 Version: 2.0.0  
 Last updated: 2026-08-21  
@@ -6,12 +6,12 @@ Base URL: `https://{SUPABASE_PROJECT_REF}.supabase.co/functions/v1`
 
 ## 1. Architecture
 
-Bonanza TTR is a CodeVASP-compatible Travel Rule gateway with a Bonanza-managed public-key registry and a Bonanza extension for identical account-owner verification.
+TravelSafer is a CodeVASP-compatible Travel Rule solution with a TravelSafer-managed public-key registry and a TravelSafer extension for identical account-owner verification.
 
 ```mermaid
 flowchart LR
   FI[Financial Institution or VASP]
-  GW[Bonanza TTR Gateway]
+  GW[TravelSafer]
   DB[(Registry / Transfers / OwnerChecks)]
   BFI[Beneficiary VASP Endpoint]
 
@@ -25,8 +25,8 @@ Key rules:
 - Registry public key is Base64 Ed25519.
 - Payload encryption derives X25519/Curve25519 from the Ed25519 key.
 - Travel Rule payloads are encrypted by the originator for the beneficiary.
-- Bonanza stores routing and audit metadata, not plaintext IVMS101 PII.
-- `OwnerCheck` is a Bonanza extension and is not placed under `/v1/code/*`.
+- TravelSafer stores routing and audit metadata, not plaintext IVMS101 PII.
+- `OwnerCheck` is a TravelSafer extension and is not placed under `/v1/code/*`.
 
 ## 2. Endpoints
 
@@ -242,7 +242,7 @@ Sequence:
 ```mermaid
 sequenceDiagram
   participant OFI as Originator FI/VASP
-  participant BZ as Bonanza TTR
+  participant BZ as TravelSafer
   participant DB as Registry/OwnerChecks
   participant BFI as Beneficiary VASP
 
@@ -306,10 +306,10 @@ OwnerCheck statuses:
 | --- | --- |
 | `SUPABASE_URL` | Supabase project URL |
 | `SUPABASE_SERVICE_ROLE_KEY` | Service role key for Edge Functions |
-| `BONANZA_HUB_VASP_ENTITY_ID` | Bonanza hub VASP id used in outbound relay |
+| `TRAVELSAFER_HUB_VASP_ENTITY_ID` | Bonanza hub VASP id used in outbound relay |
 | `BONANZA_ALLIANCE_PREFIX` | Header namespace, default `bonanza` |
-| `BONANZA_TTR_CALLBACK_BASE_URL` | Public callback base for async result callbacks |
-| `BONANZA_TTR_DEFAULT_ENDPOINT` | Optional fallback endpoint base |
+| `TRAVELSAFER_CALLBACK_BASE_URL` | Public callback base for async result callbacks |
+| `TRAVELSAFER_DEFAULT_ENDPOINT` | Optional fallback endpoint base |
 | `BONANZA_SIGNING_PRIVATE_KEY` | Signing key material for CodeVASP-compatible outbound calls |
 | `BONANZA_SIGNING_PUBLIC_KEY` | Public signing key for outbound headers |
 

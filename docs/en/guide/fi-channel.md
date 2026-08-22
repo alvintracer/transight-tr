@@ -1,13 +1,13 @@
 # Financial Institution Channels
 
-Financial institutions often cannot install overseas SaaS components or VASP-side Docker services directly inside their network. Bonanza TTR provides Travel Rule capabilities through domestic IDC ingress and VAN-style operating infrastructure.
+Financial institutions often cannot install overseas SaaS components or VASP-side Docker services directly inside their network. TravelSafer provides Travel Rule capabilities through domestic IDC ingress and VAN-style operating infrastructure.
 
 ## Why It Matters
 
-| Requirement | Bonanza TTR Response |
+| Requirement | TravelSafer Response |
 |-------------|----------------------|
-| Network separation | Approved connectivity between the institution and Bonanza IDC |
-| External SaaS restrictions | Domestic gateway endpoint instead of direct overseas endpoint |
+| Network separation | Approved connectivity between the institution and TravelSafer IDC |
+| External SaaS restrictions | Domestic service endpoint instead of direct overseas endpoint |
 | Privacy controls | Contracted processing, access control, log masking, retention rules |
 | Security review | mTLS, VPN/IPsec, dedicated line, and IP allowlist profiles |
 | Operations | Endpoint, key rotation, incident response, SLA monitoring |
@@ -26,8 +26,8 @@ Financial institutions often cannot install overseas SaaS components or VASP-sid
 
 ```mermaid
 flowchart LR
-  FI[Financial Institution] -->|Dedicated channel| IDC[Bonanza IDC Ingress]
-  IDC --> Core[Bonanza TTR Core]
+  FI[Financial Institution] -->|Dedicated channel| IDC[TravelSafer IDC Ingress]
+  IDC --> Core[TravelSafer Core]
   Core --> Keys[Public Key Directory]
   Core --> Relay[Encrypted Payload Relay]
   Relay --> BFI[Beneficiary VASP]
@@ -36,13 +36,13 @@ flowchart LR
 ## Design Rules
 
 - The financial-institution to Bonanza segment follows contract, security-channel, and privacy-processing controls.
-- Bonanza operates the beneficiary public-key directory and relay.
+- TravelSafer operates the beneficiary public-key directory and relay.
 - IVMS101 payloads sent to beneficiary VASPs are encrypted for the beneficiary public key.
 - Financial-institution channels and cloud VASP APIs use the same core contract.
 
 ## Operating Role
 
-Bonanza's role is an operating gateway, not a one-time SI project.
+Bonanza's role is an operating solution, not a one-time SI project.
 
 - Endpoint and public-key lifecycle management
 - Routing health and incident response

@@ -6,7 +6,7 @@ Transfer의 현재 상태와 relay 결과 metadata를 조회합니다.
 
 ```http
 GET /transfer-auth?id={transferId}
-Authorization: Bearer <BONANZA_TTR_API_KEY>
+Authorization: Bearer <TRAVELSAFER_API_KEY>
 ```
 
 | Parameter | Required | Description |
@@ -49,5 +49,5 @@ Authorization: Bearer <BONANZA_TTR_API_KEY>
 ## Notes
 
 - `pending`은 자동으로 `verified`로 처리하지 않습니다.
-- Bonanza는 routing과 상태 metadata를 저장합니다.
+- TravelSafer는 routing과 상태 metadata를 저장합니다.
 - 금융기관 IDC 채널을 쓰는 경우에도 조회 contract는 동일합니다.

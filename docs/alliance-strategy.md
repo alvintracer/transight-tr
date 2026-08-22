@@ -6,15 +6,15 @@ The previous alliance strategy assumed a multi-provider adapter hub. That model 
 
 Current source of truth:
 
-- [Bonanza TTR Project Context](./TRANSIGHT_PROJECT_CONTEXT.md)
-- [Bonanza TTR API Specification](./ttr-api-specification.md)
+- [TravelSafer Project Context](./TRANSIGHT_PROJECT_CONTEXT.md)
+- [TravelSafer API Specification](./ttr-api-specification.md)
 - [Korean internal strategy](/ko/internal/strategy)
 
 ## Current Direction
 
-Bonanza TTR is a CodeVASP-compatible Travel Rule Gateway built around:
+TravelSafer is a CodeVASP-compatible Travel Rule Solution built around:
 
-1. Bonanza Public Key Directory
+1. TravelSafer Public Key Directory
 2. encrypted Travel Rule payload relay
 3. financial-institution IDC channels
 4. OwnerCheck

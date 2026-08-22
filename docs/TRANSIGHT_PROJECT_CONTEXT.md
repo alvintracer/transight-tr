@@ -1,16 +1,16 @@
-# Bonanza TTR Project Context
+# TravelSafer Project Context
 
 Last updated: 2026-08-21
 
 ## 1. Product Direction
 
-Bonanza TTR is the Travel Rule Gateway maintained in this codebase.
+TravelSafer is the Travel Rule Solution maintained in this codebase.
 
 The core product is no longer a multi-adapter hub that tries to connect every Travel Rule network at once. The baseline is a CodeVASP-compatible network operated by Bonanza:
 
-- Bonanza stores and serves VASP public keys.
+- TravelSafer stores and serves VASP public keys.
 - Originating institutions encrypt Travel Rule payloads with the beneficiary VASP public key.
-- Bonanza relays encrypted payloads and manages transaction metadata, status, audit, and operational routing.
+- TravelSafer relays encrypted payloads and manages transaction metadata, status, audit, and operational routing.
 - Banks and regulated financial institutions may connect through Bonanza's existing VAN/electronic financial auxiliary infrastructure, including IDC-hosted servers, dedicated connectivity, mTLS, VPN/IPsec, and channel encryption.
 - Non-financial VASPs and overseas exchanges can use cloud APIs or a CodeVASP-compatible install assistant/SDK.
 
@@ -20,7 +20,7 @@ The core product is no longer a multi-adapter hub that tries to connect every Tr
 | --- | --- |
 | Core protocol | CodeVASP-compatible relay |
 | Default alliance namespace | `bonanza` |
-| Public key registry | Bonanza-managed VASP registry |
+| Public key registry | TravelSafer-managed VASP registry |
 | Canonical public key | Base64 Ed25519 verify key |
 | Payload encryption | X25519/Curve25519 derived from Ed25519 key, using CodeVASP-compatible NaCl box semantics |
 | Travel Rule payload | IVMS101 encrypted for the beneficiary |
@@ -35,7 +35,7 @@ Financial Institution / VASP
         |
         | HTTPS / mTLS / VPN / leased line
         v
-Bonanza TTR Gateway
+TravelSafer
   - Public Key Registry
   - CodeVASP-compatible Transfer Relay
   - OwnerCheck Relay

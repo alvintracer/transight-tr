@@ -1,12 +1,12 @@
 # Health Check
 
-Bonanza TTR Gateway와 database 연결 상태를 확인합니다.
+TravelSafer와 database 연결 상태를 확인합니다.
 
 ## Request
 
 ```http
 GET /health
-Authorization: Bearer <BONANZA_TTR_API_KEY>
+Authorization: Bearer <TRAVELSAFER_API_KEY>
 ```
 
 ## Response
@@ -17,7 +17,7 @@ Authorization: Bearer <BONANZA_TTR_API_KEY>
 {
   "status": "up",
   "timestamp": "2026-08-21T09:00:00.000Z",
-  "service": "Bonanza TTR Gateway",
+  "service": "TravelSafer",
   "version": "0.1.0",
   "components": {
     "database": "up",
@@ -33,7 +33,7 @@ Authorization: Bearer <BONANZA_TTR_API_KEY>
 {
   "status": "down",
   "timestamp": "2026-08-21T09:00:00.000Z",
-  "service": "Bonanza TTR Gateway",
+  "service": "TravelSafer",
   "error": "database unavailable"
 }
 ```
@@ -42,7 +42,7 @@ Authorization: Bearer <BONANZA_TTR_API_KEY>
 
 | Field | Description |
 |-------|-------------|
-| `status` | Gateway health status. |
+| `status` | Service health status. |
 | `components.database` | Core metadata database connectivity. |
 | `components.vasps_registered` | Registered VASP count. |
 | `components.active_public_keys` | Active public key count available for relay. |

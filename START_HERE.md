@@ -1,6 +1,6 @@
 # START_HERE.md
 
-이 문서는 Bonanza TTR 저장소에서 AI 에이전트가 가장 먼저 읽어야 하는 프로젝트 진입 가이드입니다.
+이 문서는 TravelSafer 저장소에서 AI 에이전트가 가장 먼저 읽어야 하는 프로젝트 진입 가이드입니다.
 
 ## 저장소 성격
 
@@ -12,7 +12,7 @@
 2. AI 업무 위키 / ContextHub  
    `AI-Sessions/`, `index.md`, `log.md`, `AGENTS.md`, `CLAUDE.md`, `CHATGPT.md`
 
-즉, 이 프로젝트는 단순 템플릿이 아니라 실제 Bonanza TTR 제품 저장소 안에 AI 업무 위키가 내장된 구조입니다.
+즉, 이 프로젝트는 단순 템플릿이 아니라 실제 TravelSafer 제품 저장소 안에 AI 업무 위키가 내장된 구조입니다.
 
 ## 가장 먼저 읽을 문서
 
@@ -31,11 +31,11 @@
 
 ## 프로젝트 요약
 
-- 제품명: `Bonanza TTR`
-- 목적: 금융기관, VASP, 해외 거래소가 사용할 수 있는 Travel Rule Gateway 제공
-- 핵심 구조: Bonanza Public Key Directory + CodeVASP-compatible encrypted relay
+- 제품명: `TravelSafer`
+- 목적: 금융기관, VASP, 해외 거래소가 사용할 수 있는 Travel Rule Solution 제공
+- 핵심 구조: TravelSafer Public Key Directory + CodeVASP-compatible encrypted relay
 - 금융기관 채널: IDC ingress, 전용회선, VPN/IPsec, mTLS, channel encryption
-- 동일 계정주 검증: Bonanza extension인 `OwnerCheck`
+- 동일 계정주 검증: TravelSafer extension인 `OwnerCheck`
 - 리스크 통제: `Atomic KYT Gate`로 relay 전 위험거래 차단 가능
 - 외부 adapter: GTR, Sumsub, VerifyVASP는 core data plane에서 비활성
 - SDK: `packages/bonanza-ttr-sdk`에서 `@bonanza/ttr-sdk`와 `bonanza-ttr init` CLI 제공

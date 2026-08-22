@@ -1,6 +1,6 @@
 # Transfer Authorization
 
-`transfer-auth` is the Bonanza TTR Travel Rule relay API. Outgoing requests require a beneficiary VASP and an active beneficiary public key.
+`transfer-auth` is the TravelSafer Travel Rule relay API. Outgoing requests require a beneficiary VASP and an active beneficiary public key.
 
 ## Outgoing
 
