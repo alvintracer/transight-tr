@@ -65,6 +65,17 @@ select {
   letter-spacing: 0;
 }
 
+html[lang='ko-KR'] .VPHero .main {
+  max-width: 900px;
+}
+
+html[lang='ko-KR'] .VPHero .text {
+  max-width: none;
+  white-space: nowrap;
+  font-size: clamp(20px, 6vw, 60px);
+  line-height: 1.08;
+}
+
 .VPNavBarTitle .logo {
   height: 28px;
   width: 144px;
