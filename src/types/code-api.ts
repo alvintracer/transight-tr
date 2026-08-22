@@ -177,7 +177,7 @@ export type TransferDenialReason =
 
 export interface OwnerCheckPolicy {
   requireDobMatch?: boolean;
-  nameMatchingPolicy?: 'codevasp-default' | 'strict' | 'local';
+  nameMatchingPolicy?: 'normalized-exact' | 'strict' | 'local' | string;
   dobFormat?: 'YYYY-MM-DD' | 'YYYYMMDD' | 'provider-specific';
   [key: string]: unknown;
 }
@@ -213,7 +213,7 @@ export interface OwnerCheckResponse {
 
 export interface OwnerCheckStatusResponse {
   ownerCheckId: string;
-  status: 'pending' | 'verified' | 'denied' | 'error' | 'canceled';
+  status: 'pending' | 'verified' | 'denied' | 'expired' | 'failed';
   currency: string;
   address: string;
   tag?: string | null;

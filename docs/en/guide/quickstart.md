@@ -2,6 +2,15 @@
 
 This example shows the core Bonanza TTR flow.
 
+## 0. Install SDK
+
+```bash
+npm install @bonanza/ttr-sdk
+npx bonanza-ttr init --vasp-id your-vasp-id --base-url https://api.transight.io/v1
+```
+
+The CLI creates `bonanza-ttr.config.json`, `.env.bonanza-ttr.example`, and a TypeScript integration example.
+
 ## 1. Register a VASP
 
 ```bash

@@ -186,6 +186,14 @@ OwnerCheck v1 비교 정책:
 - `src/types/code-api.ts`, `src/types/vasp.ts`, `src/types/transfer.ts`
   - 새 public key, pending, OwnerCheck 타입 반영
 
+Additional SDK/onboarding implementation:
+
+- `packages/bonanza-ttr-sdk`
+  - npm package draft: `@bonanza/ttr-sdk`
+  - client SDK for `vasp-registry`, `transfer-auth`, and `owner-check`
+  - CodeVASP-compatible signing/encryption helpers
+  - onboarding CLI: `npx bonanza-ttr init`
+
 ## 8. Remaining Work
 
 필수 후속 작업:
@@ -194,7 +202,7 @@ OwnerCheck v1 비교 정책:
 - outbound relay의 canonical JSON serialization 확정
 - OwnerCheck payload schema 확정
 - 금융기관용 IDC ingress와 cloud API의 인증 정책 분리
-- npm integration assistant 설계
+- npm integration assistant publish/registry policy
 - VASP별 name/DOB comparison policy profile 정의
 - Edge Function 통합 테스트 추가
 

@@ -1,6 +1,15 @@
-# 빠른 시작
+# Quick Start
 
-이 예시는 Bonanza TTR의 기본 흐름을 보여줍니다.
+이 예시는 Bonanza TTR의 기본 연동 흐름을 보여줍니다.
+
+## 0. SDK 설치
+
+```bash
+npm install @bonanza/ttr-sdk
+npx bonanza-ttr init --vasp-id your-vasp-id --base-url https://api.transight.io/v1
+```
+
+CLI는 `bonanza-ttr.config.json`, `.env.bonanza-ttr.example`, TypeScript 연동 예제를 생성합니다.
 
 ## 1. VASP 등록
 
@@ -20,22 +29,44 @@ curl -X POST https://api.transight.io/v1/vasp-registry \
   }'
 ```
 
-## 2. 수신 VASP 공개키 조회
+## 2. 수신 VASP Public Key 조회
 
 ```bash
 curl "https://api.transight.io/v1/vasp-registry/pubkey/kakaopay" \
   -H "Authorization: Bearer $API_KEY"
 ```
 
-응답의 `pubkey`는 Base64 Ed25519 verify key입니다. 암호화 클라이언트는 이 key에서 X25519 key를 derive합니다.
+응답의 `pubkey` 필드는 Base64 Ed25519 verify key입니다. 암호화 client는 이 key에서 X25519 key를 derive합니다.
 
-## 3. IVMS101 payload 암호화
+## 3. IVMS101 Payload 암호화
 
 송신 기관은 수신 VASP public key로 IVMS101 payload를 암호화합니다.
 
 ```text
 Ed25519 public key -> X25519 public key
 IVMS101 JSON -> NaCl box -> ENCRYPTED_IVMS101_BASE64
+```
+
+SDK를 쓰는 경우:
+
+```ts
+import { BonanzaTtrClient, encryptPayload } from '@bonanza/ttr-sdk';
+
+const client = new BonanzaTtrClient({
+  baseUrl: 'https://api.transight.io/v1',
+  apiKey: process.env.BONANZA_TTR_API_KEY,
+  vaspEntityId: 'bank-a',
+  signingPrivateKey: process.env.BONANZA_TTR_PRIVATE_KEY,
+});
+
+const beneficiary = await client.getPublicKey('kakaopay');
+const beneficiaryPublicKey = beneficiary.keys[0]?.pubkey;
+
+const payload = await encryptPayload(
+  { ivms101: { /* IVMS101 payload */ } },
+  process.env.BONANZA_TTR_PRIVATE_KEY!,
+  beneficiaryPublicKey!
+);
 ```
 
 ## 4. Transfer Authorization 호출
@@ -76,7 +107,7 @@ curl -X POST https://api.transight.io/v1/owner-check/kakaopay \
   }'
 ```
 
-## 다음 문서
+## Next
 
 - [VASP Registry](/ko/api/vasp-registry)
 - [Transfer Authorization](/ko/api/transfer-auth)

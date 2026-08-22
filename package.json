@@ -14,6 +14,8 @@
     "test:run": "vitest run",
     "typecheck": "tsc --noEmit",
     "lint": "tsc --noEmit",
+    "sdk:build": "tsc -p packages/bonanza-ttr-sdk/tsconfig.json",
+    "sdk:typecheck": "tsc -p packages/bonanza-ttr-sdk/tsconfig.json --noEmit",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs"

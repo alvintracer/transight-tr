@@ -1,0 +1,27 @@
+# Root package is not the publishable SDK.
+# Keep confidential source material and local work artifacts out of accidental npm packs.
+
+AI-Sessions/raw/
+AI-Sessions/raw-private/
+AI-Sessions/restricted/
+Bonanza_TravelRule_Integrated_Master_v1.1.md
+enclave_API.docx
+*.docx
+*.pdf
+
+.env
+.env.*
+secrets/
+
+docs/.vitepress/cache/
+docs/.vitepress/.temp/
+node_modules/
+dist/
+coverage/
+
+reference/
+VV/
+GTR/
+sumsub/
+.cotext/
+.obsidian/

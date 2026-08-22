@@ -61,6 +61,20 @@ npx supabase functions deploy transfer-auth
 npx supabase functions deploy owner-check
 ```
 
+## VASP SDK Install
+
+```bash
+npm install @bonanza/ttr-sdk
+npx bonanza-ttr init --vasp-id your-vasp-id --base-url https://api.transight.io/v1
+```
+
+The SDK package lives in `packages/bonanza-ttr-sdk` and includes:
+
+- `BonanzaTtrClient` for `vasp-registry`, `transfer-auth`, and `owner-check`
+- CodeVASP-compatible Ed25519 request signing helpers
+- Ed25519 to X25519 payload encryption helpers
+- `bonanza-ttr init` onboarding CLI
+
 ## Documentation
 
 ```bash
