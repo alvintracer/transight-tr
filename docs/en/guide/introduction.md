@@ -2,7 +2,9 @@
 
 Bonanza TTR is a Travel Rule gateway for financial institutions and VASPs that need to exchange digital-asset transfer compliance data safely.
 
-As of the 2026-08 redesign, Bonanza TTR is no longer positioned as a hub that directly adapts every external Travel Rule network. The baseline is a Bonanza-operated public-key directory and encrypted relay based on the CodeVASP architecture.
+As of the 2026-08 redesign, Bonanza TTR is no longer positioned as a hub that directly adapts every external Travel Rule network. The baseline is a Bonanza-operated public-key directory and encrypted relay with domestic integration channels for financial institutions.
+
+The implementation still considers compatibility with existing VASP public-key integration models, but the product should be presented around financial-institution onboarding, encrypted relay, OwnerCheck, and KYT Gate.
 
 ## Core Roles
 
@@ -21,7 +23,7 @@ As of the 2026-08 redesign, Bonanza TTR is no longer positioned as a hub that di
 - Do not proceed without an active beneficiary public key.
 - Do not convert `pending` to `verified`.
 - Do not operate GTR, Sumsub, or VerifyVASP adapters as the core data plane.
-- Do not place OwnerCheck under the `/v1/code/*` namespace.
+- Do not present OwnerCheck as the Travel Rule authorization itself.
 
 ## Basic Flow
 

@@ -5,11 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Bonanza TTR Core Strategy</title>
     <style>
+      @font-face {
+        font-family: 'NanumSquareAC';
+        src: url('/fonts/NanumSquare_acR.ttf') format('truetype');
+        font-weight: 400;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: 'NanumSquareAC';
+        src: url('/fonts/NanumSquare_acB.ttf') format('truetype');
+        font-weight: 700;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: 'NanumSquareAC';
+        src: url('/fonts/NanumSquare_acEB.ttf') format('truetype');
+        font-weight: 800;
+        font-style: normal;
+        font-display: swap;
+      }
       body {
         margin: 0;
-        font-family: Arial, sans-serif;
+        font-family: 'NanumSquareAC', Arial, sans-serif;
         color: #172033;
         background: #f6f8fb;
+        letter-spacing: 0;
+        word-break: keep-all;
       }
       main {
         max-width: 960px;
@@ -60,7 +83,7 @@
     <main>
       <section>
         <h1>Bonanza TTR</h1>
-        <p>CodeVASP-compatible Travel Rule Gateway for financial institutions, VASPs, and overseas counterparties.</p>
+        <p>Travel Rule Gateway for financial institutions, VASPs, and overseas counterparties.</p>
       </section>
 
       <section>
@@ -91,9 +114,9 @@
               <td>Default route</td>
             </tr>
             <tr>
-              <td>CodeVASP-Compatible</td>
+              <td>Encrypted Relay</td>
               <td>Active</td>
-              <td>Compatibility model</td>
+              <td>Public-key based payload delivery</td>
             </tr>
             <tr>
               <td>GTR, Sumsub, VerifyVASP</td>

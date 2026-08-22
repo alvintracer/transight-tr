@@ -2,13 +2,15 @@
 
 Bonanza TTR은 금융기관과 VASP가 디지털 자산 송수신에 필요한 트래블룰 정보를 안전하게 교환하기 위한 게이트웨이입니다.
 
-2026년 8월 기준 제품 방향은 명확합니다. Bonanza TTR은 여러 외부 Travel Rule 네트워크를 모두 직접 adapter로 붙이는 제품이 아니라, CodeVASP 구조를 토대로 한 Bonanza 운영형 공개키 디렉터리와 암호화 relay입니다.
+2026년 8월 기준 제품 방향은 명확합니다. Bonanza TTR은 여러 외부 Travel Rule 네트워크를 모두 직접 adapter로 붙이는 제품이 아니라, Bonanza가 운영하는 공개키 디렉터리와 암호화 relay를 중심으로 금융기관용 국내 연동 채널을 제공합니다.
+
+기술적으로는 기존 VASP 공개키 기반 연동 모델과의 호환성을 고려하지만, 제품 표면에서는 금융기관 도입, 안전한 암호화 중계, OwnerCheck, KYT Gate를 핵심 가치로 설명합니다.
 
 ## 핵심 역할
 
 | 역할 | 설명 |
 | --- | --- |
-| Public Key Directory | 연결 VASP의 Ed25519 공개키, endpoint, channel, capability를 관리합니다. |
+| Public Key Directory | 연결 VASP의 공개키, endpoint, channel, capability를 관리합니다. |
 | Travel Rule Relay | 송신 기관이 수신 VASP 공개키로 암호화한 IVMS101 payload를 중계합니다. |
 | Financial Institution Gateway | 금융기관은 Bonanza IDC, 전용성 회선, mTLS, VPN/IPsec, 구간 암호화로 연동할 수 있습니다. |
 | OwnerCheck | 동일 계정주 확인을 별도 API로 제공합니다. |
@@ -21,7 +23,7 @@ Bonanza TTR은 금융기관과 VASP가 디지털 자산 송수신에 필요한 �
 - 수신 VASP의 active public key가 없는 거래를 진행하지 않습니다.
 - `pending`을 임의로 `verified`로 바꾸지 않습니다.
 - GTR, Sumsub, VerifyVASP 직접 adapter를 core data plane으로 운영하지 않습니다.
-- OwnerCheck를 `/v1/code/*` namespace에 넣어 CodeVASP 호환성을 깨지 않습니다.
+- OwnerCheck를 Travel Rule 본 검증으로 포장하지 않습니다.
 
 ## 기본 흐름
 

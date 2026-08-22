@@ -2,15 +2,16 @@ import { defineConfig } from 'vitepress';
 
 export default defineConfig({
   title: 'Bonanza TTR',
-  description: 'Bonanza Travel Rule Gateway API documentation',
+  description: 'Bonanza Travel Rule Gateway and OwnerCheck API documentation',
   appearance: 'dark',
+  cleanUrls: true,
 
   locales: {
     ko: {
       label: '한국어',
       lang: 'ko-KR',
       title: 'Bonanza TTR',
-      description: 'CodeVASP 호환 트래블룰 게이트웨이 및 동일 계정주 검증 API 문서',
+      description: '금융기관용 트래블룰 게이트웨이 및 동일 계정주 검증 API 문서',
       themeConfig: {
         siteTitle: 'TTR',
         nav: [
@@ -87,7 +88,7 @@ export default defineConfig({
       label: 'English',
       lang: 'en-US',
       title: 'Bonanza TTR',
-      description: 'CodeVASP-compatible Travel Rule Gateway and OwnerCheck API documentation',
+      description: 'Travel Rule Gateway and OwnerCheck API documentation',
       themeConfig: {
         siteTitle: 'TTR',
         nav: [

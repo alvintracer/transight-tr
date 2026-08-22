@@ -3,7 +3,7 @@ layout: home
 hero:
   name: Bonanza TTR
   text: 금융기관을 위한 트래블룰 게이트웨이
-  tagline: CodeVASP 호환 공개키 디렉터리, 암호화 payload relay, OwnerCheck, KYT Gate를 하나의 국내 운영 인프라로 제공합니다.
+  tagline: 국내 금융기관 보안 환경에 맞춘 공개키 디렉터리, 암호화 relay, OwnerCheck, KYT Gate를 하나의 운영 인프라로 제공합니다.
   actions:
     - theme: brand
       text: 시작하기
@@ -16,10 +16,10 @@ hero:
       link: /en/
 
 features:
-  - title: Bonanza Public Key Directory
-    details: 연결 VASP의 Ed25519 공개키, endpoint, channel, capability를 등록하고 조회합니다.
-  - title: CodeVASP-Compatible Relay
-    details: IVMS101 payload는 수신 VASP 공개키로 암호화하고, Bonanza는 metadata와 relay 상태만 운영합니다.
+  - title: Public Key Directory
+    details: 연결 VASP의 공개키, endpoint, channel, capability를 등록하고 조회합니다.
+  - title: Encrypted Payload Relay
+    details: 송신 기관이 수신 VASP 공개키로 암호화한 IVMS101 payload를 중계하고, Bonanza는 routing과 상태 metadata를 운영합니다.
   - title: 금융기관 IDC 채널
     details: VAN/전자금융보조업자 인프라, 전용성 회선, mTLS, VPN/IPsec 등 금융기관 보안 요구에 맞춰 연동합니다.
   - title: OwnerCheck
