@@ -2,8 +2,8 @@
 layout: home
 hero:
   name: TravelSafer
-  text: 온전한 트래블룰 솔루션
-  tagline: 금융기관, VASP, 해외 거래소가 디지털 자산 송수신 정보를 안전하게 확인하고 전달할 수 있도록 공개키 디렉터리, 암호화 중계, OwnerCheck, KYT Gate를 하나의 서비스로 제공합니다.
+  text: VASP를 위한 트래블룰 솔루션
+  tagline: 금융기관, 거래소 등 VASP가 디지털 자산 송수신 정보를 안전하게 확인하고 전달할 수 있도록 KYT, FIAT입출금과 함께 통합형 서비스로 제공합니다.
   actions:
     - theme: brand
       text: 시작하기
