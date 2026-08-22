@@ -1,14 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="184" height="36" viewBox="0 0 184 36" role="img" aria-label="TravelSafer">
   <defs>
-    <linearGradient id="mark" x1="2" y1="4" x2="32" y2="34" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#2563EB"/>
-      <stop offset="1" stop-color="#14B8A6"/>
-    </linearGradient>
+    <style>
+      @font-face {
+        font-family: "NanumSquareAC";
+        src: url("/fonts/NanumSquare_acEB.ttf") format("truetype");
+        font-weight: 800;
+      }
+
+      .wordmark {
+        font-family: "NanumSquareAC", "Avenir Next", "Segoe UI", Arial, sans-serif;
+        font-weight: 800;
+        letter-spacing: 0;
+      }
+    </style>
   </defs>
-  <rect x="1" y="1" width="34" height="34" rx="10" fill="url(#mark)"/>
-  <path d="M18 8.5 27 12v6.2c0 5.8-3.7 10.2-9 12.3-5.3-2.1-9-6.5-9-12.3V12l9-3.5Z" fill="#FFFFFF" opacity=".95"/>
-  <path d="M14.2 18.2 17 21l5.4-6.2" fill="none" stroke="#1D4ED8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-  <text x="45" y="24.8" fill="#172033" font-family="NanumSquareAC, Avenir Next, Segoe UI, Arial, sans-serif" font-size="22" font-weight="800" letter-spacing="0">
-    Travel<tspan fill="#2563EB">Safer</tspan>
-  </text>
+  <text class="wordmark" x="0" y="28" fill="#111827" font-size="30">TravelSafer</text>
 </svg>
